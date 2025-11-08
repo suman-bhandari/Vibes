@@ -1,11 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { AuthProvider } from './context/AuthContext';
 import MapView from './components/Map/MapView';
 import SearchBar from './components/SearchBar/SearchBar';
 import FilterPanel from './components/FilterPanel/FilterPanel';
 import DarkModeToggle from './components/DarkModeToggle/DarkModeToggle';
+import AccountButton from './components/AccountButton/AccountButton';
 import ListView from './components/ListView/ListView';
+import LiveEventsPanel from './components/LiveEvents/LiveEventsPanel';
 import { mockVenues } from './data/mockVenues';
-import { Venue, VenueCategory } from './types';
+import { Venue, VenueCategory, LiveEvent } from './types';
 import { filterVenuesByCategory, filterVenuesByActivity, getActivityColor } from './utils/venueUtils';
 import './App.css';
 
@@ -16,6 +19,7 @@ function App() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [isEventsOpen, setIsEventsOpen] = useState(false);
 
   // Apply dark mode to document
   useEffect(() => {
@@ -49,9 +53,18 @@ function App() {
     setSelectedVenue(null);
   };
 
+  const handleEventSelect = (event: LiveEvent) => {
+    // Center map on event location
+    console.log('Event selected:', event);
+    setIsEventsOpen(false);
+    // In a real app, you'd center the map on the event location
+  };
+
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
-      <DarkModeToggle isDark={isDarkMode} onToggle={() => setIsDarkMode(!isDarkMode)} />
+    <AuthProvider>
+      <div className="h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+        <DarkModeToggle isDark={isDarkMode} onToggle={() => setIsDarkMode(!isDarkMode)} />
+        <AccountButton />
 
       {/* Search Bar */}
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4">
@@ -62,27 +75,36 @@ function App() {
         />
       </div>
 
-      {/* View Toggle */}
-      <div className="absolute top-20 right-4 z-50 flex gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1">
+      {/* View Toggle and Live Events Button */}
+      <div className="absolute top-20 right-4 z-50 flex flex-col gap-2">
+        <div className="flex gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1">
+          <button
+            onClick={() => setViewMode('map')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              viewMode === 'map'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            Map
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              viewMode === 'list'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`}
+          >
+            List
+          </button>
+        </div>
         <button
-          onClick={() => setViewMode('map')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            viewMode === 'map'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
+          onClick={() => setIsEventsOpen(true)}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow-lg hover:bg-purple-700 transition-colors text-sm font-medium flex items-center gap-2"
         >
-          Map
-        </button>
-        <button
-          onClick={() => setViewMode('list')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            viewMode === 'list'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-          }`}
-        >
-          List
+          <span>🎉</span>
+          <span>Live Events</span>
         </button>
       </div>
 
@@ -160,7 +182,15 @@ function App() {
           onToggle={() => setIsFilterOpen(!isFilterOpen)}
         />
       </div>
+
+      {/* Live Events Panel */}
+      <LiveEventsPanel
+        isOpen={isEventsOpen}
+        onClose={() => setIsEventsOpen(false)}
+        onEventSelect={handleEventSelect}
+      />
     </div>
+    </AuthProvider>
   );
 }
 
