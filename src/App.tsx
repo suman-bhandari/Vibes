@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import MapView from './components/Map/MapView';
 import SearchBar from './components/SearchBar/SearchBar';
@@ -8,12 +9,14 @@ import AccountButton from './components/AccountButton/AccountButton';
 import ListView from './components/ListView/ListView';
 import LiveEventsPanel from './components/LiveEvents/LiveEventsPanel';
 import FeelingLucky from './components/FeelingLucky/FeelingLucky';
+import VenueDetailsScreen from './screens/VenueDetailsScreen';
 import { mockVenues } from './data/mockVenues';
 import { Venue, VenueCategory, LiveEvent } from './types';
 import { filterVenuesByCategory, filterVenuesByActivity, getActivityColor } from './utils/venueUtils';
 import './App.css';
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate();
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<VenueCategory | 'all'>('all');
   const [activityRange, setActivityRange] = useState<[number, number]>([0, 100]);
@@ -46,8 +49,13 @@ function App() {
   }, []);
 
   const handleVenueSelect = (venue: Venue | null) => {
-    setSelectedVenue(venue);
-    setIsFilterOpen(false); // Close filter panel on mobile when venue is selected
+    if (venue) {
+      // Navigate to venue details page
+      navigate(`/venue/${venue.id}`);
+    } else {
+      setSelectedVenue(null);
+      setIsFilterOpen(false);
+    }
   };
 
   const handleClearSelection = () => {
@@ -62,8 +70,7 @@ function App() {
   };
 
   return (
-    <AuthProvider>
-      <div className="h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="h-screen w-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
         <DarkModeToggle isDark={isDarkMode} onToggle={() => setIsDarkMode(!isDarkMode)} />
         <AccountButton />
 
@@ -194,6 +201,16 @@ function App() {
       {/* I'm Feeling Lucky Button */}
       <FeelingLucky onVenueSelect={handleVenueSelect} />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<AppContent />} />
+        <Route path="/venue/:venueId" element={<VenueDetailsScreen />} />
+      </Routes>
     </AuthProvider>
   );
 }

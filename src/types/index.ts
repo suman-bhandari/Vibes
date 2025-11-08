@@ -19,6 +19,18 @@ export interface Venue {
   isSpecialEvent?: boolean; // Star-marked special events
   specialEventDescription?: string;
   liveComments?: LiveComment[];
+  openingHours?: {
+    monday?: string;
+    tuesday?: string;
+    wednesday?: string;
+    thursday?: string;
+    friday?: string;
+    saturday?: string;
+    sunday?: string;
+  };
+  phone?: string;
+  website?: string;
+  description?: string;
 }
 
 export interface LiveComment {
@@ -28,6 +40,7 @@ export interface LiveComment {
   comment: string;
   timestamp: Date;
   trustability: number;
+  reputation: number; // 0-5, normalized reputation for color coding
 }
 
 export interface MapMarker {
@@ -41,7 +54,8 @@ export interface User {
   name: string;
   avatarUrl?: string;
   trustability: number; // 0-100, starts at 0
-  reputation: number; // karma/reputation score
+  reputation: number; // 0-5, normalized reputation score (visible to all)
+  karma: number; // karma points (only visible to user, can be redeemed)
   totalReviews: number;
   createdAt: Date;
 }
@@ -53,6 +67,7 @@ export interface Review {
   userName: string; // anonymized/hashed
   userAvatarUrl?: string;
   userTrustability: number;
+  userReputation: number; // 0-5, normalized reputation
   activityQuotient: number; // how active user is at this venue (0-100)
   rating: number; // 1-5
   comment: string;

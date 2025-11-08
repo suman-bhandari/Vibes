@@ -3,6 +3,7 @@ import { Venue, Review } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { saveReview, checkLocationVerification } from '../../services/reviews';
 import { getCurrentLocation } from '../../services/location';
+import { normalizeReputation } from '../../utils/reputationUtils';
 
 interface ReviewModalProps {
   venue: Venue;
@@ -76,13 +77,19 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ venue, isOpen, onClose, onRev
       // Calculate activity quotient (based on time spent and frequency)
       const activityQuotient = Math.min(100, Math.floor((timeSpent / 60) * 10 + user.totalReviews * 2));
 
+      // Update user trustability (increase by 1-5 based on rating and verification)
+      const trustabilityIncrease = isAtVenue ? rating : Math.max(1, rating - 1);
+      const newTrustability = Math.min(100, user.trustability + trustabilityIncrease);
+      const newReputation = normalizeReputation(newTrustability);
+
       // Create review
       const review: Omit<Review, 'id' | 'createdAt'> = {
         venueId: venue.id,
         userId: user.id,
         userName: user.name, // In production, this would be anonymized/hashed
         userAvatarUrl: user.avatarUrl,
-        userTrustability: user.trustability,
+        userTrustability: newTrustability,
+        userReputation: newReputation,
         activityQuotient,
         rating,
         comment,
@@ -93,11 +100,10 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ venue, isOpen, onClose, onRev
 
       saveReview(review);
 
-      // Update user trustability (increase by 1-5 based on rating and verification)
-      const trustabilityIncrease = isAtVenue ? rating : Math.max(1, rating - 1);
-      const newTrustability = Math.min(100, user.trustability + trustabilityIncrease);
+      // Update user with new trustability and reputation
       updateUser({
         trustability: newTrustability,
+        reputation: newReputation,
         totalReviews: user.totalReviews + 1,
       });
 

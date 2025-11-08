@@ -2,6 +2,7 @@ import React from 'react';
 import { Venue } from '../../types';
 import { getReviews } from '../../services/reviews';
 import { formatWaitTime } from '../../utils/venueUtils';
+import { getReputationColor } from '../../utils/reputationUtils';
 
 interface ReviewsListProps {
   venue: Venue;
@@ -25,11 +26,6 @@ const ReviewsList: React.FC<ReviewsListProps> = ({ venue, isOpen, onClose }) => 
     }).format(date);
   };
 
-  const getTrustabilityColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 dark:text-green-400';
-    if (score >= 50) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={onClose}>
@@ -76,11 +72,13 @@ const ReviewsList: React.FC<ReviewsListProps> = ({ venue, isOpen, onClose }) => 
                         {review.userName.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">{review.userName}</p>
+                        <span
+                          className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white mb-1"
+                          style={{ backgroundColor: getReputationColor(review.userReputation) }}
+                        >
+                          {review.userName}
+                        </span>
                         <div className="flex items-center gap-2 text-xs flex-wrap">
-                          <span className={`font-medium ${getTrustabilityColor(review.userTrustability)}`}>
-                            Trustability: {review.userTrustability}/100
-                          </span>
                           <span className="text-gray-500 dark:text-gray-400">
                             Activity: {review.activityQuotient}%
                           </span>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Venue } from '../../types';
 import { getCategoryLabel, getCategoryIcon, formatWaitTime, formatWaitTimeInterval, getActivityColor } from '../../utils/venueUtils';
 import { getAISummary, getReviews } from '../../services/reviews';
+import { getReputationColor, getReputationBgColor } from '../../utils/reputationUtils';
 import ReviewModal from '../Reviews/ReviewModal';
 import ReviewsList from '../Reviews/ReviewsList';
 
@@ -10,6 +12,7 @@ interface VenuePopupProps {
 }
 
 const VenuePopup: React.FC<VenuePopupProps> = ({ venue }) => {
+  const navigate = useNavigate();
   const [aiSummary, setAiSummary] = useState<string>('');
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showReviewsList, setShowReviewsList] = useState(false);
@@ -115,12 +118,17 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue }) => {
             <div className="space-y-1 max-h-20 overflow-y-auto">
               {venue.liveComments.slice(0, 2).map((comment) => {
                 const timeAgo = Math.floor((Date.now() - comment.timestamp.getTime()) / 60000);
+                const repColor = getReputationColor(comment.reputation);
                 return (
                   <div key={comment.id} className="text-xs">
-                    <span className="font-medium text-gray-600 dark:text-gray-400">{comment.userName}</span>
-                    <span className="text-gray-500 dark:text-gray-500"> ({comment.trustability}): </span>
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[10px] font-medium text-white mr-1"
+                      style={{ backgroundColor: repColor }}
+                    >
+                      {comment.userName}
+                    </span>
                     <span className="text-gray-700 dark:text-gray-300">{comment.comment}</span>
-                    <span className="text-gray-400 dark:text-gray-500 text-[10px]"> {timeAgo}m ago</span>
+                    <span className="text-gray-400 dark:text-gray-500 text-[10px] ml-1"> {timeAgo}m ago</span>
                   </div>
                 );
               })}
@@ -142,6 +150,12 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue }) => {
             className="w-full px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
           >
             Show Reviews
+          </button>
+          <button
+            onClick={() => navigate(`/venue/${venue.id}`)}
+            className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded hover:bg-purple-700 transition-colors"
+          >
+            View Details
           </button>
           <button
             onClick={handleGetDirections}

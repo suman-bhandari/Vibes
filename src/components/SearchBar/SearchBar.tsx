@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Venue } from '../../types';
 
 interface SearchBarProps {
@@ -8,6 +9,7 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ venues, onVenueSelect, onClear }) => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
@@ -41,7 +43,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ venues, onVenueSelect, onClear })
   const handleSelect = (venue: Venue) => {
     setQuery('');
     setIsOpen(false);
-    onVenueSelect(venue);
+    navigate(`/venue/${venue.id}`);
   };
 
   const handleClear = () => {

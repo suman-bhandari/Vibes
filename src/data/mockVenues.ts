@@ -337,6 +337,18 @@ export const mockVenues: Venue[] = [
     crowd: 6, // Moderate crowd
     isSpecialEvent: true,
     specialEventDescription: 'Local celebrity spotted! 🎉',
+    openingHours: {
+      monday: '5:00 PM - 2:00 AM',
+      tuesday: '5:00 PM - 2:00 AM',
+      wednesday: '5:00 PM - 2:00 AM',
+      thursday: '5:00 PM - 2:00 AM',
+      friday: '5:00 PM - 2:00 AM',
+      saturday: '5:00 PM - 2:00 AM',
+      sunday: '5:00 PM - 12:00 AM',
+    },
+    phone: '(415) 666-0822',
+    website: 'https://thealembic.com',
+    description: 'A craft cocktail bar in the heart of Haight-Ashbury, known for innovative drinks and a cozy atmosphere. Perfect for date nights or catching up with friends.',
     liveComments: [
       {
         id: 'comment_1',
@@ -345,6 +357,7 @@ export const mockVenues: Venue[] = [
         comment: 'Amazing cocktails and great energy tonight!',
         timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 min ago
         trustability: 85,
+        reputation: 4.3, // normalized from trustability
       },
       {
         id: 'comment_2',
@@ -353,6 +366,25 @@ export const mockVenues: Venue[] = [
         comment: 'Crowd is picking up, but still manageable',
         timestamp: new Date(Date.now() - 12 * 60 * 1000), // 12 min ago
         trustability: 72,
+        reputation: 3.6,
+      },
+      {
+        id: 'comment_3',
+        userId: 'user_ghi789',
+        userName: 'm2n5p8',
+        comment: 'Bartender just made the best Old Fashioned I\'ve ever had!',
+        timestamp: new Date(Date.now() - 3 * 60 * 1000), // 3 min ago
+        trustability: 95,
+        reputation: 4.8,
+      },
+      {
+        id: 'comment_4',
+        userId: 'user_jkl012',
+        userName: 'q1r4s7',
+        comment: 'Getting a bit crowded now, but the vibe is still great',
+        timestamp: new Date(Date.now() - 8 * 60 * 1000), // 8 min ago
+        trustability: 45,
+        reputation: 2.3,
       },
     ],
   },

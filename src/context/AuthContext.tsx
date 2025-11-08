@@ -29,7 +29,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: 'user@example.com',
       name: 'Alex',
       trustability: 78,
-      reputation: 1245, // karma/reputation score
+      reputation: 4.2, // 0-5 normalized reputation (visible to all)
+      karma: 1245, // karma points (only visible to user, can be redeemed)
       totalReviews: 23,
       createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
     };
@@ -46,7 +47,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser({ 
           ...parsed, 
           createdAt: new Date(parsed.createdAt),
-          reputation: parsed.reputation || 0, // Ensure reputation exists
+          reputation: parsed.reputation !== undefined ? parsed.reputation : 0, // 0-5 normalized
+          karma: parsed.karma !== undefined ? parsed.karma : 0, // karma points
         });
       } catch (e) {
         console.error('Error loading user from localStorage:', e);
@@ -79,7 +81,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       name,
       trustability: 0,
-      reputation: 0,
+      reputation: 0, // 0-5 normalized
+      karma: 0, // karma points
       totalReviews: 0,
       createdAt: new Date(),
     };

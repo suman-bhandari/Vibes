@@ -85,9 +85,22 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogout }) =>
               </div>
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Reputation/Karma</span>
-                  <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">⭐ {user.reputation || 0}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Reputation</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{user.reputation.toFixed(1)}/5</span>
                 </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-green-600 h-2 rounded-full transition-all"
+                    style={{ width: `${(user.reputation / 5) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Karma</span>
+                  <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">💎 {user.karma || 0}</span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Redeemable for coupons and rewards</p>
               </div>
             </div>
 
