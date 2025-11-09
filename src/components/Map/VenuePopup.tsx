@@ -230,32 +230,59 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
 
   return (
     <>
-      <div className="p-2 min-w-[320px] max-w-[400px] max-h-[600px] flex flex-col">
+      <div className="p-1.5 min-w-[320px] max-w-[400px] max-h-[600px] flex flex-col">
         {/* Header */}
-        <div className="flex items-start gap-2 mb-2 flex-shrink-0 relative">
-          <span className="text-xl">{getCategoryIcon(venue.category)}</span>
+        <div className="flex items-start gap-1.5 mb-1 flex-shrink-0">
+          <span className="text-lg">{getCategoryIcon(venue.category)}</span>
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{venue.name}</h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{getCategoryLabel(venue.category)}</p>
-          </div>
-          {/* Fiery animation logo for high vibe */}
-          {venue.vibe !== undefined && venue.vibe >= 8 && (
-            <div className="absolute top-0 right-0">
-              <span className="text-2xl fire-animation">🔥</span>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 dark:text-white text-xs whitespace-nowrap truncate">{venue.name}</h3>
+                <p className="text-[10px] text-gray-600 dark:text-gray-400">{getCategoryLabel(venue.category)}</p>
+                {/* Metrics - each on separate line */}
+                <div className="flex flex-col gap-0.5 mt-0.5">
+                  {/* Capacity */}
+                  <div className="flex items-center gap-0.5">
+                    <div
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: color }}
+                    />
+                    <span className="text-[9px] font-medium text-gray-700 dark:text-gray-300">
+                      Capacity: {venue.capacity}%
+                    </span>
+                  </div>
+                  {/* Vibe (for social venues) */}
+                  {venue.vibe !== undefined && (
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-[9px] font-medium text-gray-700 dark:text-gray-300">Vibe: {venue.vibe}/10</span>
+                    </div>
+                  )}
+                  {/* Crowd (for social venues) */}
+                  {venue.crowd !== undefined && (
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-[9px] font-medium text-gray-700 dark:text-gray-300">Crowd: {venue.crowd}/10</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Fiery animation logo for high vibe */}
+              {venue.vibe !== undefined && venue.vibe >= 8 && (
+                <span className="text-2xl fire-animation flex-shrink-0">🔥</span>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Two Scrollable Sections */}
-        <div className="flex-1 flex flex-col overflow-hidden min-h-0 gap-2">
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0 gap-1">
           {/* Top Section: Details - Scrollable */}
           <div className="flex-1 overflow-y-auto min-h-0 pr-1">
             {/* Special Event Badge */}
             {venue.isSpecialEvent && (
-              <div className="mb-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-300 dark:border-yellow-700">
+              <div className="mb-1 p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-300 dark:border-yellow-700">
                 <div className="flex items-center gap-1">
-                  <span className="text-sm">⭐</span>
-                  <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-200">
+                  <span className="text-xs">⭐</span>
+                  <p className="text-[10px] font-semibold text-yellow-800 dark:text-yellow-200">
                     {venue.specialEventDescription}
                   </p>
                 </div>
@@ -264,72 +291,32 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
 
             {/* AI Summary */}
             {aiSummary && (
-              <div className="mb-2">
-                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Live GenAI Summary</p>
-                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-xs text-gray-700 dark:text-gray-300 italic">
+              <div className="mb-1">
+                <p className="text-[10px] font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Live GenAI Summary</p>
+                <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-[10px] text-gray-700 dark:text-gray-300 italic">
                     "{aiSummary}"
                   </p>
                 </div>
               </div>
             )}
             
-            <div className="mb-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {venue.capacity}% capacity
-                </span>
-              </div>
-              
-              {/* Service-based venues: Show wait time interval */}
-              {(venue.category === 'restaurant' || venue.category === 'salon' || venue.category === 'coffee') && (
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+            {/* Service-based venues: Show wait time interval */}
+            {(venue.category === 'restaurant' || venue.category === 'salon' || venue.category === 'coffee') && (
+              <div className="mb-1">
+                <p className="text-[10px] text-gray-600 dark:text-gray-400">
                   Wait time: {venue.waitTimeInterval ? formatWaitTimeInterval(venue.waitTimeInterval) : formatWaitTime(venue.waitTime)}
                 </p>
-              )}
-              
-              {/* Social venues: Show vibe and crowd */}
-              {(venue.category === 'bar' || venue.category === 'club') && (
-                <div className="space-y-1">
-                  {venue.vibe !== undefined && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-600 dark:text-gray-400">Vibe:</span>
-                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                        <div
-                          className="bg-purple-500 h-1.5 rounded-full"
-                          style={{ width: `${venue.vibe * 10}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{venue.vibe}/10</span>
-                    </div>
-                  )}
-                  {venue.crowd !== undefined && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-600 dark:text-gray-400">Crowd:</span>
-                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                        <div
-                          className="bg-orange-500 h-1.5 rounded-full"
-                          style={{ width: `${venue.crowd * 10}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{venue.crowd}/10</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{venue.address}</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-1">{venue.address}</p>
 
             {/* User Uploaded Images */}
             {venue.userImages && venue.userImages.length > 0 && (
-              <div className="mb-2">
-                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Photos</p>
-                <div className="grid grid-cols-3 gap-1">
+              <div className="mb-1">
+                <p className="text-[10px] font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Photos</p>
+                <div className="grid grid-cols-3 gap-0.5">
                   {venue.userImages.slice(0, 6).map((image) => (
                     <button
                       key={image.id}
@@ -349,11 +336,11 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
           </div>
 
           {/* Bottom Section: Live Comments - Scrollable */}
-          <div className="flex-1 overflow-y-auto min-h-0 border-t border-gray-200 dark:border-gray-700 pt-2">
-            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Live Comments</p>
+          <div className="flex-1 overflow-y-auto min-h-0 border-t border-gray-200 dark:border-gray-700 pt-1">
+            <p className="text-[10px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Live Comments</p>
             
             {/* Comments List */}
-            <div className="space-y-2 mb-2">
+            <div className="space-y-1 mb-1">
               {liveComments.length > 0 ? (
                 liveComments.map((comment) => {
                   const repColor = getReputationColor(comment.reputation);
@@ -362,26 +349,26 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                   return (
                     <div
                       key={comment.id}
-                      className={`p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-xs transition-all duration-500 ${
+                      className={`p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-[10px] transition-all duration-500 ${
                         isNew ? 'animate-slide-in bg-blue-50 dark:bg-blue-900/30' : ''
                       }`}
                       style={{ backgroundColor: isNew ? undefined : repBgColor }}
                     >
-                      <div className="flex items-center gap-1 mb-1">
+                      <div className="flex items-center gap-1 mb-0.5">
                         <span
-                          className="px-1.5 py-0.5 rounded text-[10px] font-medium text-white"
+                          className="px-1 py-0.5 rounded text-[9px] font-medium text-white"
                           style={{ backgroundColor: repColor }}
                         >
                           {comment.userName}
                         </span>
-                        <span className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
+                        <span className="text-[9px] text-gray-600 dark:text-gray-400 font-medium">
                           {comment.reputation.toFixed(1)}/5
                         </span>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                        <span className="text-[9px] text-gray-500 dark:text-gray-400">
                           {formatTimeAgo(comment.timestamp)}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-700 dark:text-gray-300 mb-1">{comment.comment}</p>
+                      <p className="text-[10px] text-gray-700 dark:text-gray-300 mb-0.5">{comment.comment}</p>
                       {/* Comment Images */}
                       {comment.images && comment.images.length > 0 && (
                         <div className="flex gap-1 mt-1">
@@ -412,7 +399,7 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
 
             {/* Add Comment Section */}
             {user && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-1 mt-1">
                 <div className="flex gap-1">
                   <input
                     type="text"
@@ -425,12 +412,12 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                       }
                     }}
                     placeholder="Add a comment..."
-                    className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="flex-1 px-1.5 py-0.5 text-[10px] border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                   <button
                     onClick={handleAddComment}
                     disabled={!newComment.trim()}
-                    className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    className="px-1.5 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
                     Post
                   </button>
@@ -441,33 +428,40 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
         </div>
 
         {/* Action Buttons - Fixed at bottom */}
-        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-2 mt-2 space-y-1">
-          {onViewDetails && (
+        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-1 mt-1">
+          <div className="flex items-center justify-center gap-1">
             <button
-              onClick={onViewDetails}
-              className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded hover:bg-purple-700 transition-colors"
+              onClick={() => setShowReviewModal(true)}
+              className="flex-1 flex flex-col items-center justify-center px-1 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Add Review"
             >
-              View Details
+              <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span className="text-[8px] mt-0.5 text-gray-700 dark:text-gray-300">Review</span>
             </button>
-          )}
-          <button
-            onClick={() => setShowReviewModal(true)}
-            className="w-full px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 transition-colors"
-          >
-            Add Review
-          </button>
-          <button
-            onClick={() => setShowReviewsList(true)}
-            className="w-full px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
-          >
-            Show Reviews
-          </button>
-          <button
-            onClick={handleGetDirections}
-            className="w-full px-3 py-1.5 bg-gray-600 text-white text-xs font-medium rounded hover:bg-gray-700 transition-colors"
-          >
-            Get Directions
-          </button>
+            <button
+              onClick={() => setShowReviewsList(true)}
+              className="flex-1 flex flex-col items-center justify-center px-1 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Show Reviews"
+            >
+              <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-[8px] mt-0.5 text-gray-700 dark:text-gray-300">Reviews</span>
+            </button>
+            <button
+              onClick={handleGetDirections}
+              className="flex-1 flex flex-col items-center justify-center px-1 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Get Directions"
+            >
+              <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="text-[8px] mt-0.5 text-gray-700 dark:text-gray-300">Directions</span>
+            </button>
+          </div>
         </div>
       </div>
 
