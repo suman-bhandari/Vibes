@@ -4,8 +4,8 @@ import { VenueCategory } from '../../types';
 interface FilterPanelProps {
   selectedCategory: VenueCategory | 'all';
   onCategoryChange: (category: VenueCategory | 'all') => void;
-  activityRange: [number, number];
-  onActivityRangeChange: (range: [number, number]) => void;
+  vibeRange: [number, number];
+  onVibeRangeChange: (range: [number, number]) => void;
   isOpen: boolean;
   onToggle: () => void;
 }
@@ -13,8 +13,8 @@ interface FilterPanelProps {
 const FilterPanel: React.FC<FilterPanelProps> = ({
   selectedCategory,
   onCategoryChange,
-  activityRange,
-  onActivityRangeChange,
+  vibeRange,
+  onVibeRangeChange,
   isOpen,
   onToggle,
 }) => {
@@ -125,16 +125,16 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
           </div>
 
-          {/* Activity Level Slider */}
+          {/* Vibe Range Slider */}
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
-              Activity Level
+              Vibe
             </h3>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>Min: {activityRange[0]}%</span>
-                  <span>Max: {activityRange[1]}%</span>
+                  <span>Min: {vibeRange[0]}/5</span>
+                  <span>Max: {vibeRange[1]}/5</span>
                 </div>
                 <div className="relative h-8 flex items-center">
                   {/* Background track */}
@@ -143,20 +143,21 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <div 
                     className="absolute h-2 bg-blue-600 rounded-lg"
                     style={{
-                      left: `${activityRange[0]}%`,
-                      width: `${activityRange[1] - activityRange[0]}%`
+                      left: `${(vibeRange[0] / 5) * 100}%`,
+                      width: `${((vibeRange[1] - vibeRange[0]) / 5) * 100}%`
                     }}
                   />
                   {/* Min slider */}
                   <input
                     type="range"
                     min="0"
-                    max="100"
-                    value={activityRange[0]}
+                    max="5"
+                    step="0.5"
+                    value={vibeRange[0]}
                     onChange={(e) => {
-                      const newMin = parseInt(e.target.value);
-                      if (newMin <= activityRange[1]) {
-                        onActivityRangeChange([newMin, activityRange[1]]);
+                      const newMin = parseFloat(e.target.value);
+                      if (newMin <= vibeRange[1]) {
+                        onVibeRangeChange([newMin, vibeRange[1]]);
                       }
                     }}
                     className="absolute w-full h-2 bg-transparent appearance-none cursor-pointer z-10 range-input"
@@ -165,34 +166,17 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                   <input
                     type="range"
                     min="0"
-                    max="100"
-                    value={activityRange[1]}
+                    max="5"
+                    step="0.5"
+                    value={vibeRange[1]}
                     onChange={(e) => {
-                      const newMax = parseInt(e.target.value);
-                      if (newMax >= activityRange[0]) {
-                        onActivityRangeChange([activityRange[0], newMax]);
+                      const newMax = parseFloat(e.target.value);
+                      if (newMax >= vibeRange[0]) {
+                        onVibeRangeChange([vibeRange[0], newMax]);
                       }
                     }}
                     className="absolute w-full h-2 bg-transparent appearance-none cursor-pointer z-20 range-input"
                   />
-                </div>
-              </div>
-              <div className="flex gap-2 text-xs">
-                <div className="flex-1 text-center">
-                  <div className="w-full h-2 bg-green-500 rounded mb-1" />
-                  <span className="text-gray-600">Available</span>
-                </div>
-                <div className="flex-1 text-center">
-                  <div className="w-full h-2 bg-yellow-500 rounded mb-1" />
-                  <span className="text-gray-600">Some Activity</span>
-                </div>
-                <div className="flex-1 text-center">
-                  <div className="w-full h-2 bg-orange-500 rounded mb-1" />
-                  <span className="text-gray-600">Moderate</span>
-                </div>
-                <div className="flex-1 text-center">
-                  <div className="w-full h-2 bg-red-500 rounded mb-1" />
-                  <span className="text-gray-600">Very Busy</span>
                 </div>
               </div>
             </div>

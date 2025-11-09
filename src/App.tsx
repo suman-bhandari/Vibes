@@ -9,13 +9,13 @@ import LiveEventsPanel from './components/LiveEvents/LiveEventsPanel';
 import FeelingLucky from './components/FeelingLucky/FeelingLucky';
 import { mockVenues } from './data/mockVenues';
 import { Venue, VenueCategory, LiveEvent } from './types';
-import { filterVenuesByCategory, filterVenuesByActivity, getActivityColor } from './utils/venueUtils';
+import { filterVenuesByCategory } from './utils/venueUtils';
 import './App.css';
 
 function AppContent() {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<VenueCategory | 'all'>('all');
-  const [activityRange, setActivityRange] = useState<[number, number]>([0, 100]);
+  const [vibeRange, setVibeRange] = useState<[number, number]>([0, 5]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isEventsOpen, setIsEventsOpen] = useState(false);
@@ -29,12 +29,25 @@ function AppContent() {
     }
   }, [isDarkMode]);
 
-  // Filter venues based on category and activity
+  // Filter venues based on category and vibe
   const filteredVenues = useMemo(() => {
     let venues = filterVenuesByCategory(mockVenues, selectedCategory);
-    venues = filterVenuesByActivity(venues, activityRange[0], activityRange[1]);
+    // Filter by vibe for entertainment venues (bar, club)
+    venues = venues.filter((v) => {
+      if (v.category === 'bar' || v.category === 'club') {
+        // For entertainment venues, filter by aggregated vibe
+        // For now, use the vibe property if available, otherwise skip filtering
+        if (v.vibe !== undefined) {
+          return v.vibe >= vibeRange[0] && v.vibe <= vibeRange[1];
+        }
+        // If no vibe set, include it (will be calculated from comments)
+        return true;
+      }
+      // For non-entertainment venues, include all
+      return true;
+    });
     return venues;
-  }, [selectedCategory, activityRange]);
+  }, [selectedCategory, vibeRange]);
 
 
   const handleVenueSelect = (venue: Venue | null) => {
@@ -95,8 +108,8 @@ function AppContent() {
           <FilterPanel
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
-            activityRange={activityRange}
-            onActivityRangeChange={setActivityRange}
+            vibeRange={vibeRange}
+            onVibeRangeChange={setVibeRange}
             isOpen={isFilterOpen}
             onToggle={() => setIsFilterOpen(!isFilterOpen)}
           />
@@ -117,8 +130,8 @@ function AppContent() {
         <FilterPanel
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
-          activityRange={activityRange}
-          onActivityRangeChange={setActivityRange}
+          vibeRange={vibeRange}
+          onVibeRangeChange={setVibeRange}
           isOpen={isFilterOpen}
           onToggle={() => setIsFilterOpen(!isFilterOpen)}
         />

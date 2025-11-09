@@ -9,13 +9,13 @@ export interface Venue {
   address: string;
   latitude: number;
   longitude: number;
-  capacity: number; // 0-100
-  waitTime: number; // in minutes (base estimate)
-  waitTimeInterval: [number, number]; // 85% confidence interval [min, max]
-  activityLevel: ActivityLevel;
+  capacity: number; // 0-100 (kept for internal calculations)
+  waitTime: number; // in minutes (base estimate, kept for internal calculations)
+  waitTimeInterval: [number, number]; // 85% confidence interval [min, max] for service venues
+  activityLevel: ActivityLevel; // kept for internal calculations
   aiSummary?: string; // AI-generated current vibe summary
-  vibe?: number; // 1-10 for social venues (bars, clubs)
-  crowd?: number; // 1-10 for social venues
+  crowdRange?: [number, number]; // estimated crowd size range (e.g., [20, 30] people)
+  vibe?: number; // aggregated vibe rating 1-10 for entertainment venues (calculated from live comments)
   isSpecialEvent?: boolean; // Star-marked special events
   specialEventDescription?: string;
   liveComments?: LiveComment[];
@@ -52,6 +52,8 @@ export interface LiveComment {
   reputation: number; // 0-5, normalized reputation for color coding
   karma?: number; // experience points (for display)
   images?: string[]; // optional array of image URLs
+  vibe?: number; // 1-10 vibe rating (mandatory for entertainment venues)
+  waitTimeRange?: [number, number]; // wait time range in minutes (for service-based venues)
 }
 
 export interface MapMarker {

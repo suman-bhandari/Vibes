@@ -30,7 +30,7 @@ export const mockVenues: Venue[] = [
     waitTimeInterval: getWaitTimeInterval(75),
     activityLevel: getActivityLevel(95, 75),
     vibe: 8,
-    crowd: 9,
+    crowdRange: [45, 55],
   },
   {
     id: '2',
@@ -44,7 +44,7 @@ export const mockVenues: Venue[] = [
     waitTimeInterval: getWaitTimeInterval(20),
     activityLevel: getActivityLevel(45, 20),
     vibe: 6,
-    crowd: 5,
+    crowdRange: [20, 30],
   },
   {
     id: '3',
@@ -58,7 +58,7 @@ export const mockVenues: Venue[] = [
     waitTimeInterval: getWaitTimeInterval(50),
     activityLevel: getActivityLevel(88, 50),
     vibe: 9,
-    crowd: 8,
+    crowdRange: [40, 50],
   },
   {
     id: '4',
@@ -72,7 +72,7 @@ export const mockVenues: Venue[] = [
     waitTimeInterval: getWaitTimeInterval(35),
     activityLevel: getActivityLevel(70, 35),
     vibe: 7,
-    crowd: 7,
+    crowdRange: [30, 40],
   },
   {
     id: '5',
@@ -377,8 +377,7 @@ export const mockVenues: Venue[] = [
     waitTime: 22,
     waitTimeInterval: getWaitTimeInterval(22),
     activityLevel: getActivityLevel(50, 22),
-    vibe: 8, // High vibe for social venue
-    crowd: 6, // Moderate crowd
+    crowdRange: [25, 35], // Estimated crowd size range
     isSpecialEvent: true,
     specialEventDescription: 'Local celebrity spotted! 🎉',
     openingHours: {
@@ -402,6 +401,7 @@ export const mockVenues: Venue[] = [
         timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 min ago
         trustability: 85,
         reputation: 4.3, // normalized from trustability
+        vibe: 4.5, // Vibe rating for entertainment venue (0-5 scale, converted from 9/10)
       },
       {
         id: 'comment_2',
@@ -411,6 +411,7 @@ export const mockVenues: Venue[] = [
         timestamp: new Date(Date.now() - 12 * 60 * 1000), // 12 min ago
         trustability: 72,
         reputation: 3.6,
+        vibe: 3.5, // Converted from 7/10
       },
       {
         id: 'comment_3',
@@ -420,6 +421,7 @@ export const mockVenues: Venue[] = [
         timestamp: new Date(Date.now() - 3 * 60 * 1000), // 3 min ago
         trustability: 95,
         reputation: 4.8,
+        vibe: 5.0, // Converted from 10/10
       },
       {
         id: 'comment_4',
@@ -429,6 +431,7 @@ export const mockVenues: Venue[] = [
         timestamp: new Date(Date.now() - 8 * 60 * 1000), // 8 min ago
         trustability: 45,
         reputation: 2.3,
+        vibe: 4.0, // Converted from 8/10
       },
     ],
   },
@@ -479,6 +482,7 @@ export const mockVenues: Venue[] = [
     waitTime: 10,
     waitTimeInterval: getWaitTimeInterval(10),
     activityLevel: getActivityLevel(33, 10),
+    crowdRange: [15, 25],
   },
   {
     id: '30',
@@ -491,6 +495,84 @@ export const mockVenues: Venue[] = [
     waitTime: 25,
     waitTimeInterval: getWaitTimeInterval(25),
     activityLevel: getActivityLevel(80, 25),
+    crowdRange: [40, 60],
+  },
+  {
+    id: '31',
+    name: 'Floyd\'s Barbershop',
+    category: 'salon',
+    address: '2400 Mission St, San Francisco, CA 94110',
+    latitude: 37.7589,
+    longitude: -122.4194,
+    capacity: 45,
+    waitTime: 25,
+    waitTimeInterval: [20, 30],
+    activityLevel: getActivityLevel(45, 25),
+    crowdRange: [2, 3],
+    openingHours: {
+      monday: '9:00 AM - 7:00 PM',
+      tuesday: '9:00 AM - 7:00 PM',
+      wednesday: '9:00 AM - 7:00 PM',
+      thursday: '9:00 AM - 7:00 PM',
+      friday: '9:00 AM - 8:00 PM',
+      saturday: '9:00 AM - 7:00 PM',
+      sunday: '10:00 AM - 6:00 PM',
+    },
+    phone: '(415) 555-0123',
+    website: 'https://floydsbarbershop.com',
+    description: 'Classic barbershop with modern style. Expert cuts, hot towel shaves, and a welcoming atmosphere.',
+    liveComments: [
+      {
+        id: 'floyd_comment_1',
+        userId: 'user_barber1',
+        userName: 'Mike',
+        comment: 'Great cut! The barber really knows his stuff. Clean and professional.',
+        timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 min ago
+        trustability: 78,
+        reputation: 3.9,
+        waitTimeRange: [20, 25],
+      },
+      {
+        id: 'floyd_comment_2',
+        userId: 'user_barber2',
+        userName: 'David',
+        comment: 'Just finished my trim. Wait was about 25 minutes but worth it. Quality service!',
+        timestamp: new Date(Date.now() - 12 * 60 * 1000), // 12 min ago
+        trustability: 82,
+        reputation: 4.1,
+        waitTimeRange: [22, 28],
+      },
+      {
+        id: 'floyd_comment_3',
+        userId: 'user_barber3',
+        userName: 'Chris',
+        comment: 'Hot towel shave was amazing! Only 2 people ahead of me when I arrived.',
+        timestamp: new Date(Date.now() - 18 * 60 * 1000), // 18 min ago
+        trustability: 91,
+        reputation: 4.6,
+        waitTimeRange: [18, 22],
+      },
+      {
+        id: 'floyd_comment_4',
+        userId: 'user_barber4',
+        userName: 'Alex',
+        comment: 'Classic barbershop vibe. Got a perfect fade. Wait time was around 20-25 min.',
+        timestamp: new Date(Date.now() - 25 * 60 * 1000), // 25 min ago
+        trustability: 65,
+        reputation: 3.3,
+        waitTimeRange: [20, 30],
+      },
+      {
+        id: 'floyd_comment_5',
+        userId: 'user_barber5',
+        userName: 'Jordan',
+        comment: 'Best haircut I\'ve had in SF. Staff is friendly and the place is clean.',
+        timestamp: new Date(Date.now() - 32 * 60 * 1000), // 32 min ago
+        trustability: 88,
+        reputation: 4.4,
+        waitTimeRange: [25, 30],
+      },
+    ],
   },
 ];
 

@@ -45,7 +45,11 @@ const FeelingLucky: React.FC<FeelingLuckyProps> = ({ onVenueSelect }) => {
         if (venue.vibe && venue.vibe >= 7) score += 2;
       }
       if (input.includes('crowd') || input.includes('people')) {
-        if (venue.crowd && venue.crowd >= 6) score += 2;
+        // Check if crowd range indicates a busy venue (average crowd >= 30 people)
+        if (venue.crowdRange) {
+          const avgCrowd = (venue.crowdRange[0] + venue.crowdRange[1]) / 2;
+          if (avgCrowd >= 30) score += 2;
+        }
       }
       if (input.includes('special') || input.includes('event')) {
         if (venue.isSpecialEvent) score += 5;

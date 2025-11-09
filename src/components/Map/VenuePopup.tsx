@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Venue, VenueImage } from '../../types';
 import { getCategoryLabel, getCategoryIcon, formatWaitTime, formatWaitTimeInterval, getActivityColor } from '../../utils/venueUtils';
 import { getAISummary, getReviews } from '../../services/reviews';
@@ -62,6 +62,9 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
   const [newComment, setNewComment] = useState('');
   const [liveComments, setLiveComments] = useState(venue?.liveComments || []);
   const [newCommentIds, setNewCommentIds] = useState<Set<string>>(new Set());
+  const [vibeRating, setVibeRating] = useState<number>(0); // For entertainment venues (0-5 scale)
+  const [waitTimeMin, setWaitTimeMin] = useState<number>(10); // For service venues
+  const [waitTimeMax, setWaitTimeMax] = useState<number>(15); // For service venues
 
   useEffect(() => {
     const reviews = getReviews(venue.id);
@@ -206,13 +209,69 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
     window.open(url, '_blank');
   };
 
+  // Check if venue is entertainment-based (bar, club)
+  const isEntertainmentVenue = venue.category === 'bar' || venue.category === 'club';
+  // Check if venue is service-based (restaurant, salon, coffee)
+  const isServiceVenue = venue.category === 'restaurant' || venue.category === 'salon' || venue.category === 'coffee';
+
+  // Calculate aggregated vibe from live comments (0-5 scale)
+  const aggregatedVibe = useMemo(() => {
+    if (!isEntertainmentVenue || !liveComments || liveComments.length === 0) return undefined;
+    const commentsWithVibe = liveComments.filter(c => c.vibe !== undefined);
+    if (commentsWithVibe.length === 0) return undefined;
+    // Convert old 1-10 scale to 0-5 scale if needed, then calculate average
+    const sum = commentsWithVibe.reduce((acc, c) => {
+      const vibe = c.vibe || 0;
+      // If vibe is > 5, it's old scale (1-10), convert to 0-5
+      const normalizedVibe = vibe > 5 ? (vibe - 1) / 2 : vibe;
+      return acc + normalizedVibe;
+    }, 0);
+    const avg = sum / commentsWithVibe.length;
+    return avg; // Return actual average (not rounded)
+  }, [liveComments, isEntertainmentVenue]);
+
+  // Get rounded vibe for display (nearest 0.5)
+  const roundedVibe = useMemo(() => {
+    if (aggregatedVibe === undefined) return undefined;
+    return Math.round(aggregatedVibe * 2) / 2;
+  }, [aggregatedVibe]);
+
+  // Helper function to render fire symbols for vibe (0-5 scale)
+  const renderVibeFires = (vibe: number) => {
+    const roundedVibe = Math.round(vibe * 2) / 2; // Round to nearest 0.5
+    const fullFires = Math.floor(roundedVibe);
+    const hasHalfFire = roundedVibe % 1 === 0.5;
+    
+    return (
+      <span className="flex items-center gap-0.5">
+        {Array.from({ length: fullFires }).map((_, i) => (
+          <span key={i} className="text-xs">🔥</span>
+        ))}
+        {hasHalfFire && <span className="text-xs opacity-50">🔥</span>}
+        {Array.from({ length: 5 - fullFires - (hasHalfFire ? 1 : 0) }).map((_, i) => (
+          <span key={`empty-${i}`} className="text-xs opacity-20">🔥</span>
+        ))}
+      </span>
+    );
+  };
+
   const handleAddComment = () => {
     if (!newComment.trim() || !user) return;
+    
+    // Validate required fields based on venue type
+    if (isEntertainmentVenue && (vibeRating < 0 || vibeRating > 5)) {
+      alert('Please provide a vibe rating between 0-5');
+      return;
+    }
+    if (isServiceVenue && (waitTimeMin < 0 || waitTimeMax < waitTimeMin)) {
+      alert('Please provide a valid wait time range');
+      return;
+    }
 
     // Use the user's actual name (first name only if it contains a space)
     const firstName = user.name.split(' ')[0];
 
-    const comment = {
+    const comment: any = {
       id: `comment_${Date.now()}`,
       userId: user.id,
       userName: firstName,
@@ -222,6 +281,16 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
       reputation: user.reputation,
       karma: user.karma || 0, // Include user's karma/experience
     };
+
+    // Add vibe for entertainment venues
+    if (isEntertainmentVenue) {
+      comment.vibe = vibeRating;
+    }
+    
+    // Add wait time range for service venues
+    if (isServiceVenue) {
+      comment.waitTimeRange = [waitTimeMin, waitTimeMax];
+    }
 
     // Add comment at the top of the list
     setLiveComments((prev) => {
@@ -245,9 +314,37 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
     });
 
     setNewComment('');
+    // Reset inputs
+    setVibeRating(0);
+    setWaitTimeMin(10);
+    setWaitTimeMax(15);
   };
 
-  const color = getActivityColor(venue.activityLevel);
+  // Calculate crowd range from live comments (if available) or use venue's crowdRange
+  const displayCrowdRange = useMemo(() => {
+    if (venue.crowdRange) return venue.crowdRange;
+    // If no crowdRange set, calculate from comments or use default
+    // For now, use a default range based on venue capacity
+    const estimatedCrowd = Math.round((venue.capacity / 100) * 50); // Rough estimate
+    return [Math.max(0, estimatedCrowd - 5), estimatedCrowd + 5];
+  }, [venue.crowdRange, venue.capacity]);
+
+  // Calculate max crowd for display scale (use 100 as max for visualization)
+  const maxCrowdForDisplay = 100;
+
+  // Calculate wait time range for service venues from live comments
+  const displayWaitTimeRange = useMemo(() => {
+    if (!isServiceVenue) return venue.waitTimeInterval;
+    const commentsWithWaitTime = liveComments.filter(c => c.waitTimeRange);
+    if (commentsWithWaitTime.length === 0) return venue.waitTimeInterval;
+    
+    // Aggregate wait time ranges from comments
+    const allMins = commentsWithWaitTime.map(c => c.waitTimeRange![0]);
+    const allMaxs = commentsWithWaitTime.map(c => c.waitTimeRange![1]);
+    const avgMin = Math.round(allMins.reduce((a, b) => a + b, 0) / allMins.length);
+    const avgMax = Math.round(allMaxs.reduce((a, b) => a + b, 0) / allMaxs.length);
+    return [avgMin, avgMax];
+  }, [liveComments, isServiceVenue, venue.waitTimeInterval]);
 
   return (
     <>
@@ -260,36 +357,60 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-gray-900 dark:text-white text-xs whitespace-nowrap truncate">{venue.name}</h3>
                 <p className="text-[10px] text-gray-600 dark:text-gray-400">{getCategoryLabel(venue.category)}</p>
-                {/* Metrics - each on separate line */}
-                <div className="flex flex-col gap-0.5 mt-0.5">
-                  {/* Capacity */}
-                  <div className="flex items-center gap-0.5">
+                
+                {/* Crowd Range Display - for all venues */}
+                <div className="mt-1">
+                  <p className="text-[9px] text-gray-600 dark:text-gray-400 mb-0.5">Crowd</p>
+                  <div className="relative h-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full overflow-hidden">
+                    {/* Blue highlighted interval */}
                     <div
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: color }}
+                      className="absolute h-full bg-blue-600 rounded-full"
+                      style={{
+                        left: `${Math.min(95, (displayCrowdRange[0] / maxCrowdForDisplay) * 100)}%`,
+                        width: `${Math.min(100 - (displayCrowdRange[0] / maxCrowdForDisplay) * 100, ((displayCrowdRange[1] - displayCrowdRange[0]) / maxCrowdForDisplay) * 100)}%`
+                      }}
                     />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[8px] font-medium text-gray-700 dark:text-gray-300 z-10">
+                        {displayCrowdRange[0]} - {displayCrowdRange[1]} people
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vibe Rating (fire symbols) - for entertainment venues */}
+                {isEntertainmentVenue && aggregatedVibe !== undefined && roundedVibe !== undefined && (
+                  <div className="mt-1 flex items-center gap-1">
+                    <span className="text-[9px] text-gray-600 dark:text-gray-400">Vibe:</span>
+                    {renderVibeFires(roundedVibe)}
                     <span className="text-[9px] font-medium text-gray-700 dark:text-gray-300">
-                      Capacity: {venue.capacity}%
+                      {aggregatedVibe.toFixed(1)}/5
                     </span>
                   </div>
-                  {/* Vibe (for social venues) */}
-                  {venue.vibe !== undefined && (
-                    <div className="flex items-center gap-0.5">
-                      <span className="text-[9px] font-medium text-gray-700 dark:text-gray-300">Vibe: {venue.vibe}/10</span>
+                )}
+
+                {/* Wait Time Range - for service venues */}
+                {isServiceVenue && (
+                  <div className="mt-1">
+                    <p className="text-[9px] text-gray-600 dark:text-gray-400 mb-0.5">Wait Time</p>
+                    <div className="relative h-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full overflow-hidden">
+                      {/* Blue highlighted interval - use 60 minutes as max scale */}
+                      <div
+                        className="absolute h-full bg-blue-600 rounded-full"
+                        style={{
+                          left: `${Math.min(95, (displayWaitTimeRange[0] / 60) * 100)}%`,
+                          width: `${Math.min(100 - (displayWaitTimeRange[0] / 60) * 100, ((displayWaitTimeRange[1] - displayWaitTimeRange[0]) / 60) * 100)}%`
+                        }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-[8px] font-medium text-gray-700 dark:text-gray-300 z-10">
+                          {displayWaitTimeRange[0]} - {displayWaitTimeRange[1]} min
+                        </span>
+                      </div>
                     </div>
-                  )}
-                  {/* Crowd (for social venues) */}
-                  {venue.crowd !== undefined && (
-                    <div className="flex items-center gap-0.5">
-                      <span className="text-[9px] font-medium text-gray-700 dark:text-gray-300">Crowd: {venue.crowd}/10</span>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-              {/* Fiery animation logo for high vibe */}
-              {venue.vibe !== undefined && venue.vibe >= 8 && (
-                <span className="text-2xl fire-animation flex-shrink-0">🔥</span>
-              )}
             </div>
           </div>
         </div>
@@ -319,15 +440,6 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                     "{aiSummary}"
                   </p>
                 </div>
-              </div>
-            )}
-            
-            {/* Service-based venues: Show wait time interval */}
-            {(venue.category === 'restaurant' || venue.category === 'salon' || venue.category === 'coffee') && (
-              <div className="mb-1">
-                <p className="text-[10px] text-gray-600 dark:text-gray-400">
-                  Wait time: {venue.waitTimeInterval ? formatWaitTimeInterval(venue.waitTimeInterval) : formatWaitTime(venue.waitTime)}
-                </p>
               </div>
             )}
 
@@ -388,10 +500,10 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                         </span>
                         <span className="text-[9px] text-gray-600 dark:text-gray-400">|</span>
                         <span className="text-[9px] text-gray-600 dark:text-gray-400">
-                          Exp: {(() => {
+                          <span className="font-bold text-blue-600 dark:text-blue-400">EXP</span>: {(() => {
                             const exp = comment.karma !== undefined ? comment.karma : comment.trustability;
                             return exp >= 1000 ? `${(exp / 1000).toFixed(1)}k` : exp;
-                          })()} ♠️
+                          })()}
                         </span>
                         <span className="text-[9px] text-gray-500 dark:text-gray-400 ml-auto">
                           {formatTimeAgo(comment.timestamp)}
@@ -430,51 +542,100 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
         </div>
 
         {/* WhatsApp-style Comment Input - Fixed at bottom */}
-        {user && (
-          <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-1 mt-1">
-            <div className="flex items-center gap-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-1">
-              <button
-                onClick={handleAddComment}
-                disabled={!newComment.trim()}
-                className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Add comment"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-              <input
-                type="text"
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleAddComment();
-                  }
-                }}
-                placeholder="Type a message..."
-                className="flex-1 px-2 py-1 text-[10px] bg-transparent text-gray-900 dark:text-white focus:outline-none"
-              />
-              <button
-                className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-                title="Add image"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </button>
-              <button
-                className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
-                title="Voice message"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
+            {user && (
+              <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-1 mt-1 space-y-1">
+                {/* Vibe input for entertainment venues - clickable fire symbols */}
+                {isEntertainmentVenue && (
+                  <div className="flex items-center gap-2 px-2">
+                    <label className="text-[9px] text-gray-600 dark:text-gray-400 whitespace-nowrap">Vibe:</label>
+                    <div className="flex items-center gap-0.5">
+                      {Array.from({ length: 6 }).map((_, i) => {
+                        const rating = i; // 0, 1, 2, 3, 4, 5
+                        const isSelected = vibeRating >= rating;
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setVibeRating(rating)}
+                            className={`text-sm transition-all ${
+                              isSelected ? 'opacity-100' : 'opacity-20'
+                            } hover:opacity-60`}
+                            title={`${rating}/5`}
+                          >
+                            🔥
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Wait time range input for service venues */}
+                {isServiceVenue && (
+                  <div className="flex items-center gap-2 px-2">
+                    <label className="text-[9px] text-gray-600 dark:text-gray-400 whitespace-nowrap">Wait (min):</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={waitTimeMin}
+                      onChange={(e) => setWaitTimeMin(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-16 px-1.5 py-0.5 text-[10px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <span className="text-[9px] text-gray-600 dark:text-gray-400">-</span>
+                    <input
+                      type="number"
+                      min={waitTimeMin}
+                      value={waitTimeMax}
+                      onChange={(e) => setWaitTimeMax(Math.max(waitTimeMin, parseInt(e.target.value) || waitTimeMin))}
+                      className="w-16 px-1.5 py-0.5 text-[10px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <span className="text-[9px] text-gray-600 dark:text-gray-400">min</span>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-1">
+                  <button
+                    onClick={handleAddComment}
+                    disabled={!newComment.trim()}
+                    className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Add comment"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleAddComment();
+                      }
+                    }}
+                    placeholder="Type a message..."
+                    className="flex-1 px-2 py-1 text-[10px] bg-transparent text-gray-900 dark:text-white focus:outline-none"
+                  />
+                  <button
+                    className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                    title="Add image"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                  <button
+                    className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                    title="Voice message"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
       </div>
 
       {showReviewModal && (
