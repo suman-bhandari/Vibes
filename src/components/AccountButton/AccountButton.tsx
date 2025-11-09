@@ -22,9 +22,10 @@ const AccountButton: React.FC = () => {
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300 block">
                 {user.name}
               </span>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-gray-600 dark:text-gray-400">Rep: {user.reputation.toFixed(1)}/5</span>
-                <span className="text-yellow-600 dark:text-yellow-400">💎 {user.karma || 0}</span>
+              <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                <span>Trust: {user.reputation.toFixed(1)} 🤝</span>
+                <span>|</span>
+                <span>Exp: {user.karma >= 1000 ? `${(user.karma / 1000).toFixed(1)}k` : user.karma} ♠️</span>
               </div>
             </div>
           </>

@@ -55,34 +55,42 @@ const MapView: React.FC<MapViewProps> = ({ venues, selectedVenue, onVenueSelect 
   // Create custom marker icons based on activity level
   const createCustomIcon = (venue: Venue) => {
     const color = getActivityColor(venue.activityLevel);
-    const hasSpecialEvent = venue.isSpecialEvent;
+    const hasHighVibe = venue.vibe !== undefined && venue.vibe >= 8;
     
+    if (hasHighVibe) {
+      // Star marker for venues with high vibe (8 or more)
+      return L.divIcon({
+        className: 'custom-marker',
+        html: `
+          <div style="
+            font-size: 32px;
+            line-height: 1;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+            cursor: pointer;
+            text-align: center;
+            color: #FFD700;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+          ">⭐</div>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      });
+    }
+    
+    // Regular circle marker for normal venues
     return L.divIcon({
       className: 'custom-marker',
       html: `
-        <div style="position: relative;">
-          <div style="
-            background-color: ${color};
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.2s;
-          "></div>
-          ${hasSpecialEvent ? `
-            <div style="
-              position: absolute;
-              top: -10px;
-              right: -10px;
-              font-size: 20px;
-              line-height: 1;
-              filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
-              z-index: 1000;
-            ">⭐</div>
-          ` : ''}
-        </div>
+        <div style="
+          background-color: ${color};
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 3px solid white;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          cursor: pointer;
+          transition: transform 0.2s;
+        "></div>
       `,
       iconSize: [24, 24],
       iconAnchor: [12, 12],

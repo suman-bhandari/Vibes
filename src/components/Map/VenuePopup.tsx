@@ -222,7 +222,27 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
       reputation: user.reputation,
     };
 
-    setLiveComments([comment, ...liveComments]);
+    // Add comment at the top of the list
+    setLiveComments((prev) => {
+      const updated = [comment, ...prev].slice(0, 15);
+      return updated.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    });
+
+    // Mark as new for animation
+    setNewCommentIds((prev) => {
+      const updated = new Set(prev);
+      updated.add(comment.id);
+      // Remove from new set after animation completes
+      setTimeout(() => {
+        setNewCommentIds((prevSet) => {
+          const newSet = new Set(prevSet);
+          newSet.delete(comment.id);
+          return newSet;
+        });
+      }, 2000);
+      return updated;
+    });
+
     setNewComment('');
   };
 
@@ -276,7 +296,7 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
         {/* Two Scrollable Sections */}
         <div className="flex-1 flex flex-col overflow-hidden min-h-0 gap-1">
           {/* Top Section: Details - Scrollable */}
-          <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+          <div className="flex-[1.5] overflow-y-auto min-h-0 pr-1">
             {/* Special Event Badge */}
             {venue.isSpecialEvent && (
               <div className="mb-1 p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-300 dark:border-yellow-700">
@@ -336,11 +356,11 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
           </div>
 
           {/* Bottom Section: Live Comments - Scrollable */}
-          <div className="flex-1 overflow-y-auto min-h-0 border-t border-gray-200 dark:border-gray-700 pt-1">
+          <div className="flex-[0.8] overflow-y-auto min-h-0 border-t border-gray-200 dark:border-gray-700 pt-1">
             <p className="text-[10px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Live Comments</p>
             
             {/* Comments List */}
-            <div className="space-y-1 mb-1">
+            <div className="space-y-0.5 mb-0.5">
               {liveComments.length > 0 ? (
                 liveComments.map((comment) => {
                   const repColor = getReputationColor(comment.reputation);
@@ -349,29 +369,34 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                   return (
                     <div
                       key={comment.id}
-                      className={`p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-[10px] transition-all duration-500 ${
+                      className={`p-1 rounded-lg border border-gray-200 dark:border-gray-700 text-[10px] transition-all duration-500 ${
                         isNew ? 'animate-slide-in bg-blue-50 dark:bg-blue-900/30' : ''
                       }`}
                       style={{ backgroundColor: isNew ? undefined : repBgColor }}
                     >
-                      <div className="flex items-center gap-1 mb-0.5">
+                      <div className="flex items-center gap-1 mb-0.5 flex-wrap">
                         <span
-                          className="px-1 py-0.5 rounded text-[9px] font-medium text-white"
+                          className="px-0.5 py-0 rounded text-[9px] font-medium text-white"
                           style={{ backgroundColor: repColor }}
                         >
                           {comment.userName}
                         </span>
-                        <span className="text-[9px] text-gray-600 dark:text-gray-400 font-medium">
-                          {comment.reputation.toFixed(1)}/5
+                        <span className="text-[9px] text-gray-600 dark:text-gray-400">|</span>
+                        <span className="text-[9px] text-gray-600 dark:text-gray-400">
+                          Trust: {comment.reputation.toFixed(1)} 🤝
                         </span>
-                        <span className="text-[9px] text-gray-500 dark:text-gray-400">
+                        <span className="text-[9px] text-gray-600 dark:text-gray-400">|</span>
+                        <span className="text-[9px] text-gray-600 dark:text-gray-400">
+                          Exp: {comment.trustability >= 1000 ? `${(comment.trustability / 1000).toFixed(1)}k` : comment.trustability} ♠️
+                        </span>
+                        <span className="text-[9px] text-gray-500 dark:text-gray-400 ml-auto">
                           {formatTimeAgo(comment.timestamp)}
                         </span>
                       </div>
-                      <p className="text-[10px] text-gray-700 dark:text-gray-300 mb-0.5">{comment.comment}</p>
+                      <p className="text-[10px] text-gray-700 dark:text-gray-300">{comment.comment}</p>
                       {/* Comment Images */}
                       {comment.images && comment.images.length > 0 && (
-                        <div className="flex gap-1 mt-1">
+                        <div className="flex gap-1 mt-0.5">
                           {comment.images.map((imgUrl, idx) => (
                             <button
                               key={idx}
@@ -397,72 +422,55 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
               )}
             </div>
 
-            {/* Add Comment Section */}
-            {user && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-1 mt-1">
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleAddComment();
-                      }
-                    }}
-                    placeholder="Add a comment..."
-                    className="flex-1 px-1.5 py-0.5 text-[10px] border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={handleAddComment}
-                    disabled={!newComment.trim()}
-                    className="px-1.5 py-0.5 text-[10px] bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                  >
-                    Post
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Action Buttons - Fixed at bottom */}
-        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-1 mt-1">
-          <div className="flex items-center justify-center gap-1">
-            <button
-              onClick={() => setShowReviewModal(true)}
-              className="flex-1 flex flex-col items-center justify-center px-1 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title="Add Review"
-            >
-              <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span className="text-[8px] mt-0.5 text-gray-700 dark:text-gray-300">Review</span>
-            </button>
-            <button
-              onClick={() => setShowReviewsList(true)}
-              className="flex-1 flex flex-col items-center justify-center px-1 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title="Show Reviews"
-            >
-              <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="text-[8px] mt-0.5 text-gray-700 dark:text-gray-300">Reviews</span>
-            </button>
-            <button
-              onClick={handleGetDirections}
-              className="flex-1 flex flex-col items-center justify-center px-1 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title="Get Directions"
-            >
-              <svg className="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="text-[8px] mt-0.5 text-gray-700 dark:text-gray-300">Directions</span>
-            </button>
+        {/* WhatsApp-style Comment Input - Fixed at bottom */}
+        {user && (
+          <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-1 mt-1">
+            <div className="flex items-center gap-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-1">
+              <button
+                onClick={handleAddComment}
+                disabled={!newComment.trim()}
+                className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Add comment"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAddComment();
+                  }
+                }}
+                placeholder="Type a message..."
+                className="flex-1 px-2 py-1 text-[10px] bg-transparent text-gray-900 dark:text-white focus:outline-none"
+              />
+              <button
+                className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                title="Add image"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button
+                className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                title="Voice message"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {showReviewModal && (

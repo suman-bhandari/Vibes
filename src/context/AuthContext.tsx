@@ -27,10 +27,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const defaultUser: User = {
       id: 'user_default',
       email: 'user@example.com',
-      name: 'Alex',
-      trustability: 78,
-      reputation: 4.2, // 0-5 normalized reputation (visible to all)
-      karma: 1245, // karma points (only visible to user, can be redeemed)
+      name: 'Rohan',
+      trustability: 98,
+      reputation: 4.9, // 0-5 normalized reputation (visible to all)
+      karma: 12000, // karma points (only visible to user, can be redeemed) - 12k
       totalReviews: 23,
       createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
     };
