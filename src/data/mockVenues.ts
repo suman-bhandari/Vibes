@@ -187,7 +187,7 @@ export const mockVenues: Venue[] = [
       {
         id: 'hokkaido_comment_1',
         userId: 'user_hokkaido1',
-        userName: 's3t7u9v',
+        userName: 'Jessica',
         comment: 'Amazing sushi and the music is perfect! Great vibe tonight.',
         timestamp: new Date(Date.now() - 4 * 60 * 1000), // 4 min ago
         trustability: 92,
@@ -196,7 +196,7 @@ export const mockVenues: Venue[] = [
       {
         id: 'hokkaido_comment_2',
         userId: 'user_hokkaido2',
-        userName: 'w2x5y8',
+        userName: 'Ryan',
         comment: 'Best ramen in SF! The atmosphere is so lively.',
         timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 min ago
         trustability: 88,
@@ -397,7 +397,7 @@ export const mockVenues: Venue[] = [
       {
         id: 'comment_1',
         userId: 'user_abc123',
-        userName: 'u7x9k2m',
+        userName: 'Sarah',
         comment: 'Amazing cocktails and great energy tonight!',
         timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 min ago
         trustability: 85,
@@ -406,7 +406,7 @@ export const mockVenues: Venue[] = [
       {
         id: 'comment_2',
         userId: 'user_def456',
-        userName: 'p4q8r1s',
+        userName: 'Marcus',
         comment: 'Crowd is picking up, but still manageable',
         timestamp: new Date(Date.now() - 12 * 60 * 1000), // 12 min ago
         trustability: 72,
@@ -415,7 +415,7 @@ export const mockVenues: Venue[] = [
       {
         id: 'comment_3',
         userId: 'user_ghi789',
-        userName: 'm2n5p8',
+        userName: 'Emma',
         comment: 'Bartender just made the best Old Fashioned I\'ve ever had!',
         timestamp: new Date(Date.now() - 3 * 60 * 1000), // 3 min ago
         trustability: 95,
@@ -424,7 +424,7 @@ export const mockVenues: Venue[] = [
       {
         id: 'comment_4',
         userId: 'user_jkl012',
-        userName: 'q1r4s7',
+        userName: 'James',
         comment: 'Getting a bit crowded now, but the vibe is still great',
         timestamp: new Date(Date.now() - 8 * 60 * 1000), // 8 min ago
         trustability: 45,

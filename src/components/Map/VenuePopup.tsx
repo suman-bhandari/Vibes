@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Venue, VenueImage } from '../../types';
 import { getCategoryLabel, getCategoryIcon, formatWaitTime, formatWaitTimeInterval, getActivityColor } from '../../utils/venueUtils';
 import { getAISummary, getReviews } from '../../services/reviews';
@@ -61,12 +61,144 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
   const [expandedImage, setExpandedImage] = useState<VenueImage | string | null>(null);
   const [newComment, setNewComment] = useState('');
   const [liveComments, setLiveComments] = useState(venue?.liveComments || []);
+  const [newCommentIds, setNewCommentIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const reviews = getReviews(venue.id);
     const summary = getAISummary(venue, reviews);
     setAiSummary(summary);
-    setLiveComments(venue.liveComments || []);
+    
+    // Initialize with existing comments, sorted by timestamp (newest first)
+    const sortedComments = [...(venue.liveComments || [])].sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+    );
+    setLiveComments(sortedComments);
+    
+    // Mark existing comments as not new
+    setNewCommentIds(new Set());
+  }, [venue]);
+
+  // Helper function to add a new comment
+  const addNewComment = useCallback(() => {
+    // Pool of potential comments for real-time simulation
+    const potentialComments = [
+      { comment: 'Just arrived! The atmosphere is electric!', trustability: 88, reputation: 4.4 },
+      { comment: 'DJ just dropped a banger! 🔥', trustability: 92, reputation: 4.6 },
+      { comment: 'Line is getting longer but worth the wait', trustability: 75, reputation: 3.8 },
+      { comment: 'Best night out in a while!', trustability: 80, reputation: 4.0 },
+      { comment: 'Crowd is amazing tonight', trustability: 85, reputation: 4.3 },
+      { comment: 'Drinks are flowing, energy is high!', trustability: 90, reputation: 4.5 },
+      { comment: 'Just saw someone famous walk in!', trustability: 95, reputation: 4.8 },
+      { comment: 'Music is on point tonight', trustability: 82, reputation: 4.1 },
+      { comment: 'Place is packed but still fun', trustability: 70, reputation: 3.5 },
+      { comment: 'Vibe check: 10/10 would recommend', trustability: 88, reputation: 4.4 },
+    ];
+
+    const generateRandomFirstName = () => {
+      const firstNames = [
+        'Alex', 'Jordan', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Avery', 'Quinn',
+        'Sam', 'Dakota', 'Cameron', 'Blake', 'Jamie', 'Drew', 'Logan', 'Noah',
+        'Emma', 'Olivia', 'Sophia', 'Isabella', 'Ava', 'Mia', 'Charlotte', 'Amelia',
+        'Harper', 'Evelyn', 'Abigail', 'Emily', 'Elizabeth', 'Mila', 'Ella', 'Avery',
+        'Sofia', 'Camila', 'Aria', 'Scarlett', 'Victoria', 'Madison', 'Luna', 'Grace',
+        'Chloe', 'Penelope', 'Layla', 'Riley', 'Zoey', 'Nora', 'Lily', 'Eleanor',
+        'Hannah', 'Lillian', 'Addison', 'Aubrey', 'Ellie', 'Stella', 'Natalie', 'Zoe',
+        'Leah', 'Hazel', 'Violet', 'Aurora', 'Savannah', 'Audrey', 'Brooklyn', 'Bella',
+        'Claire', 'Skylar', 'Lucy', 'Paisley', 'Everly', 'Anna', 'Caroline', 'Nova',
+        'Genesis', 'Aaliyah', 'Kennedy', 'Kinsley', 'Allison', 'Maya', 'Sarah', 'Madelyn',
+        'Adeline', 'Alexa', 'Ariana', 'Elena', 'Arianna', 'Lydia', 'Clara', 'Hadley',
+        'Gabriella', 'Josephine', 'Piper', 'Isla', 'Annabelle', 'Eliana', 'Willow', 'Naomi',
+        'Emilia', 'Liliana', 'Natalia', 'Delilah', 'Valentina', 'Alyssa', 'Gianna', 'Elise',
+        'Lyla', 'Arielle', 'Melanie', 'Julia', 'Katherine', 'Mya', 'Ivy', 'Khloe',
+        'Lillian', 'Liliana', 'Aubree', 'Adalynn', 'Kylie', 'Brielle', 'Adalyn', 'Eva',
+        'Paisley', 'Athena', 'Natalia', 'Elena', 'Molly', 'Emilia', 'Isabelle', 'Lyla',
+        'Arianna', 'Leilani', 'Melanie', 'Mya', 'Quinn', 'Willow', 'Natalie', 'Ariana',
+        'James', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Christopher',
+        'Charles', 'Daniel', 'Matthew', 'Anthony', 'Mark', 'Donald', 'Steven', 'Paul',
+        'Andrew', 'Joshua', 'Kenneth', 'Kevin', 'Brian', 'George', 'Timothy', 'Ronald',
+        'Jason', 'Edward', 'Jeffrey', 'Ryan', 'Jacob', 'Gary', 'Nicholas', 'Eric',
+        'Jonathan', 'Stephen', 'Larry', 'Justin', 'Scott', 'Brandon', 'Benjamin', 'Samuel',
+        'Gregory', 'Alexander', 'Patrick', 'Frank', 'Raymond', 'Jack', 'Dennis', 'Jerry',
+        'Tyler', 'Aaron', 'Jose', 'Adam', 'Nathan', 'Henry', 'Douglas', 'Zachary',
+        'Peter', 'Kyle', 'Noah', 'Ethan', 'Jeremy', 'Walter', 'Christian', 'Keith',
+        'Roger', 'Terry', 'Austin', 'Sean', 'Gerald', 'Carl', 'Harold', 'Dylan',
+        'Jesse', 'Jordan', 'Bryan', 'Billy', 'Bruce', 'Gabriel', 'Joe', 'Logan',
+        'Alan', 'Juan', 'Lawrence', 'Wayne', 'Roy', 'Ralph', 'Randy', 'Eugene',
+        'Vincent', 'Russell', 'Louis', 'Philip', 'Bobby', 'Johnny', 'Willie', 'Ethan',
+        'Marcus', 'Lucas', 'Mason', 'Jackson', 'Aiden', 'Oliver', 'Carter', 'Sebastian',
+        'Mateo', 'Jack', 'Levi', 'Grayson', 'Asher', 'Leo', 'Wyatt', 'Julian',
+        'Hudson', 'Lincoln', 'Ezra', 'Owen', 'Maverick', 'Luke', 'Caleb', 'Isaac',
+        'Josiah', 'Andrew', 'Thomas', 'Joshua', 'Ezekiel', 'Charles', 'Christopher', 'Jaxon',
+        'Maverick', 'Carter', 'Theodore', 'Jayden', 'Dominic', 'Luca', 'Parker', 'Landon',
+        'Cooper', 'Kayden', 'Miles', 'Adrian', 'Santiago', 'Colton', 'Brantley', 'Declan',
+        'Bentley', 'Axel', 'Micah', 'Giovanni', 'Diego', 'Brody', 'Nathaniel', 'Ryder',
+        'Theo', 'Bennett', 'George', 'Maxwell', 'Ivan', 'Maddox', 'Justin', 'Kevin',
+        'Preston', 'Brandon', 'Tristan', 'Gael', 'Sawyer', 'Jax', 'Roman', 'Ryker',
+        'Leonardo', 'Greyson', 'Jose', 'Bennett', 'Everett', 'Waylon', 'Weston', 'Easton',
+        'Axel', 'Silas', 'Wesley', 'Sawyer', 'Harrison', 'Zachary', 'Ashton', 'Beau',
+        'Ryder', 'Grayson', 'Easton', 'Jax', 'Cooper', 'Lincoln', 'Landon', 'Roman',
+        'Axel', 'Silas', 'Wesley', 'Sawyer', 'Harrison', 'Zachary', 'Ashton', 'Beau',
+        'Ryder', 'Grayson', 'Easton', 'Jax', 'Cooper', 'Lincoln', 'Landon', 'Roman',
+      ];
+      return firstNames[Math.floor(Math.random() * firstNames.length)];
+    };
+
+    const randomComment = potentialComments[Math.floor(Math.random() * potentialComments.length)];
+    const newComment = {
+      id: `comment_realtime_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      userId: `user_${Math.random().toString(36).substring(2, 9)}`,
+      userName: generateRandomFirstName(),
+      comment: randomComment.comment,
+      timestamp: new Date(),
+      trustability: randomComment.trustability,
+      reputation: randomComment.reputation,
+    };
+
+    setLiveComments((prev) => {
+      // Add new comment at the top, keep max 15 comments
+      const updated = [newComment, ...prev].slice(0, 15);
+      return updated.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    });
+
+    // Mark as new for animation
+    setNewCommentIds((prev) => {
+      const updated = new Set(prev);
+      updated.add(newComment.id);
+      // Remove from new set after animation completes
+      setTimeout(() => {
+        setNewCommentIds((prevSet) => {
+          const newSet = new Set(prevSet);
+          newSet.delete(newComment.id);
+          return newSet;
+        });
+      }, 2000);
+      return updated;
+    });
+  }, []);
+
+  // Trigger first comment 2 seconds after venue opens
+  useEffect(() => {
+    if (!venue) return;
+
+    const firstCommentTimer = setTimeout(() => {
+      addNewComment();
+    }, 2000); // 2 seconds after opening
+
+    return () => clearTimeout(firstCommentTimer);
+  }, [venue]);
+
+  // Simulate real-time comment updates (subsequent comments)
+  useEffect(() => {
+    if (!venue) return;
+
+    const interval = setInterval(() => {
+      // Randomly decide if a new comment should appear (30% chance)
+      if (Math.random() < 0.3) {
+        addNewComment();
+      }
+    }, Math.random() * 5000 + 5000); // Random interval between 5-10 seconds
+
+    return () => clearInterval(interval);
   }, [venue]);
 
   const handleGetDirections = () => {
@@ -77,10 +209,13 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
   const handleAddComment = () => {
     if (!newComment.trim() || !user) return;
 
+    // Use the user's actual name (first name only if it contains a space)
+    const firstName = user.name.split(' ')[0];
+
     const comment = {
       id: `comment_${Date.now()}`,
       userId: user.id,
-      userName: user.name.substring(0, 6) + Math.random().toString(36).substring(2, 5),
+      userName: firstName,
       comment: newComment.trim(),
       timestamp: new Date(),
       trustability: user.trustability,
@@ -223,11 +358,14 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                 liveComments.map((comment) => {
                   const repColor = getReputationColor(comment.reputation);
                   const repBgColor = getReputationBgColor(comment.reputation);
+                  const isNew = newCommentIds.has(comment.id);
                   return (
                     <div
                       key={comment.id}
-                      className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-xs"
-                      style={{ backgroundColor: repBgColor }}
+                      className={`p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-xs transition-all duration-500 ${
+                        isNew ? 'animate-slide-in bg-blue-50 dark:bg-blue-900/30' : ''
+                      }`}
+                      style={{ backgroundColor: isNew ? undefined : repBgColor }}
                     >
                       <div className="flex items-center gap-1 mb-1">
                         <span
