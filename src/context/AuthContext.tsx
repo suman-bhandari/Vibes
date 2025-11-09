@@ -44,11 +44,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (savedUser) {
       try {
         const parsed = JSON.parse(savedUser);
+        // Normalize reputation if it's the old format (0-100 or large number)
+        let normalizedReputation = parsed.reputation !== undefined ? parsed.reputation : 0;
+        if (normalizedReputation > 5) {
+          // Old format - convert from trustability or large number to 0-5
+          normalizedReputation = Math.min(5, Math.max(0, (parsed.trustability || 0) / 100 * 5));
+        }
+        
         setUser({ 
           ...parsed, 
           createdAt: new Date(parsed.createdAt),
-          reputation: parsed.reputation !== undefined ? parsed.reputation : 0, // 0-5 normalized
-          karma: parsed.karma !== undefined ? parsed.karma : 0, // karma points
+          reputation: normalizedReputation, // 0-5 normalized
+          karma: parsed.karma !== undefined ? parsed.karma : (parsed.reputation && parsed.reputation > 5 ? parsed.reputation : 0), // karma points (migrate old reputation to karma if needed)
         });
       } catch (e) {
         console.error('Error loading user from localStorage:', e);

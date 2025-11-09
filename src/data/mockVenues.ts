@@ -160,6 +160,50 @@ export const mockVenues: Venue[] = [
     waitTimeInterval: getWaitTimeInterval(120),
     activityLevel: getActivityLevel(98, 120),
   },
+  {
+    id: '27',
+    name: 'Hokkaido',
+    category: 'restaurant',
+    address: '512 Octavia St, San Francisco, CA 94102',
+    latitude: 37.7756,
+    longitude: -122.4242,
+    capacity: 68,
+    waitTime: 28,
+    waitTimeInterval: getWaitTimeInterval(28),
+    activityLevel: getActivityLevel(68, 28),
+    openingHours: {
+      monday: '11:00 AM - 10:00 PM',
+      tuesday: '11:00 AM - 10:00 PM',
+      wednesday: '11:00 AM - 10:00 PM',
+      thursday: '11:00 AM - 10:00 PM',
+      friday: '11:00 AM - 11:00 PM',
+      saturday: '11:00 AM - 11:00 PM',
+      sunday: '12:00 PM - 9:00 PM',
+    },
+    phone: '(415) 555-0123',
+    website: 'https://hokkaidosf.com',
+    description: 'Authentic Japanese cuisine with a modern twist. Known for fresh sushi, ramen, and a lively atmosphere with great background music. Perfect for date nights or group dinners.',
+    liveComments: [
+      {
+        id: 'hokkaido_comment_1',
+        userId: 'user_hokkaido1',
+        userName: 's3t7u9v',
+        comment: 'Amazing sushi and the music is perfect! Great vibe tonight.',
+        timestamp: new Date(Date.now() - 4 * 60 * 1000), // 4 min ago
+        trustability: 92,
+        reputation: 4.6,
+      },
+      {
+        id: 'hokkaido_comment_2',
+        userId: 'user_hokkaido2',
+        userName: 'w2x5y8',
+        comment: 'Best ramen in SF! The atmosphere is so lively.',
+        timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 min ago
+        trustability: 88,
+        reputation: 4.4,
+      },
+    ],
+  },
   
   // Salons & Barbers
   {

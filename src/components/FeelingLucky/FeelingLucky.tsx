@@ -50,6 +50,41 @@ const FeelingLucky: React.FC<FeelingLuckyProps> = ({ onVenueSelect }) => {
       if (input.includes('special') || input.includes('event')) {
         if (venue.isSpecialEvent) score += 5;
       }
+      
+      // Asian restaurant matching
+      if ((input.includes('asian') || input.includes('japanese') || input.includes('sushi') || input.includes('ramen')) && venue.category === 'restaurant') {
+        score += 6;
+        // Boost for Hokkaido specifically
+        if (venue.name.toLowerCase().includes('hokkaido')) score += 10;
+      }
+      
+      // Music matching
+      if (input.includes('music') || input.includes('sound') || input.includes('tunes')) {
+        // Hokkaido has good music mentioned in description
+        if (venue.description && (venue.description.toLowerCase().includes('music') || venue.name.toLowerCase().includes('hokkaido'))) {
+          score += 5;
+        }
+        // Bars and clubs typically have music
+        if (venue.category === 'bar' || venue.category === 'club') score += 3;
+      }
+      
+      // "Open now" matching - check if current time is within opening hours
+      if (input.includes('open now') || input.includes('open')) {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentDay = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][now.getDay()];
+        
+        if (venue.openingHours && venue.openingHours[currentDay as keyof typeof venue.openingHours]) {
+          const hours = venue.openingHours[currentDay as keyof typeof venue.openingHours];
+          if (hours) {
+            // Simple check - if venue has opening hours, assume it's open during typical hours
+            // Hokkaido is open 11 AM - 10 PM most days
+            if (currentHour >= 11 && currentHour < 22) {
+              score += 4;
+            }
+          }
+        }
+      }
 
       // Boost score for venues with good reviews
       if (venue.aiSummary && venue.aiSummary.includes('recommended')) score += 1;

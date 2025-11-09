@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Venue } from '../../types';
 import { getCategoryLabel, getCategoryIcon, formatWaitTime, formatWaitTimeInterval, getActivityColor } from '../../utils/venueUtils';
 import { getAISummary, getReviews } from '../../services/reviews';
@@ -12,7 +11,6 @@ interface VenuePopupProps {
 }
 
 const VenuePopup: React.FC<VenuePopupProps> = ({ venue }) => {
-  const navigate = useNavigate();
   const [aiSummary, setAiSummary] = useState<string>('');
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showReviewsList, setShowReviewsList] = useState(false);
@@ -127,6 +125,9 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue }) => {
                     >
                       {comment.userName}
                     </span>
+                    <span className="text-gray-500 dark:text-gray-400 text-[10px] mr-1">
+                      ({comment.reputation.toFixed(1)}/5)
+                    </span>
                     <span className="text-gray-700 dark:text-gray-300">{comment.comment}</span>
                     <span className="text-gray-400 dark:text-gray-500 text-[10px] ml-1"> {timeAgo}m ago</span>
                   </div>
@@ -150,12 +151,6 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue }) => {
             className="w-full px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
           >
             Show Reviews
-          </button>
-          <button
-            onClick={() => navigate(`/venue/${venue.id}`)}
-            className="w-full px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded hover:bg-purple-700 transition-colors"
-          >
-            View Details
           </button>
           <button
             onClick={handleGetDirections}

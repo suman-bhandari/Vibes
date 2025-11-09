@@ -266,6 +266,9 @@ const VenueDetailsScreen: React.FC = () => {
                       >
                         {comment.userName}
                       </span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        {comment.reputation.toFixed(1)}/5
+                      </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
                         {formatTimeAgo(comment.timestamp)}
                       </span>

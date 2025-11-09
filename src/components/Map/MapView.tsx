@@ -37,23 +37,52 @@ function MapController({ selectedVenue }: { selectedVenue: Venue | null }) {
 
 const MapView: React.FC<MapViewProps> = ({ venues, selectedVenue, onVenueSelect }) => {
   const mapRef = useRef<L.Map | null>(null);
+  const markerRefs = useRef<Map<string, L.Marker>>(new Map());
+
+  // Open popup when venue is selected
+  useEffect(() => {
+    if (selectedVenue) {
+      const marker = markerRefs.current.get(selectedVenue.id);
+      if (marker) {
+        // Wait for map animation to complete, then open popup
+        setTimeout(() => {
+          marker.openPopup();
+        }, 600);
+      }
+    }
+  }, [selectedVenue]);
 
   // Create custom marker icons based on activity level
   const createCustomIcon = (venue: Venue) => {
     const color = getActivityColor(venue.activityLevel);
+    const hasSpecialEvent = venue.isSpecialEvent;
+    
     return L.divIcon({
       className: 'custom-marker',
       html: `
-        <div style="
-          background-color: ${color};
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          cursor: pointer;
-          transition: transform 0.2s;
-        "></div>
+        <div style="position: relative;">
+          <div style="
+            background-color: ${color};
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+          "></div>
+          ${hasSpecialEvent ? `
+            <div style="
+              position: absolute;
+              top: -10px;
+              right: -10px;
+              font-size: 20px;
+              line-height: 1;
+              filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+              z-index: 1000;
+            ">⭐</div>
+          ` : ''}
+        </div>
       `,
       iconSize: [24, 24],
       iconAnchor: [12, 12],
@@ -82,6 +111,11 @@ const MapView: React.FC<MapViewProps> = ({ venues, selectedVenue, onVenueSelect 
             eventHandlers={{
               click: () => {
                 onVenueSelect(venue);
+              },
+              add: (e) => {
+                // Store marker reference when added to map
+                const marker = e.target as L.Marker;
+                markerRefs.current.set(venue.id, marker);
               },
             }}
           >
