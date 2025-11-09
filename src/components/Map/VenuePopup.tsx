@@ -220,6 +220,7 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
       timestamp: new Date(),
       trustability: user.trustability,
       reputation: user.reputation,
+      karma: user.karma || 0, // Include user's karma/experience
     };
 
     // Add comment at the top of the list
@@ -387,7 +388,10 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                         </span>
                         <span className="text-[9px] text-gray-600 dark:text-gray-400">|</span>
                         <span className="text-[9px] text-gray-600 dark:text-gray-400">
-                          Exp: {comment.trustability >= 1000 ? `${(comment.trustability / 1000).toFixed(1)}k` : comment.trustability} ♠️
+                          Exp: {(() => {
+                            const exp = comment.karma !== undefined ? comment.karma : comment.trustability;
+                            return exp >= 1000 ? `${(exp / 1000).toFixed(1)}k` : exp;
+                          })()} ♠️
                         </span>
                         <span className="text-[9px] text-gray-500 dark:text-gray-400 ml-auto">
                           {formatTimeAgo(comment.timestamp)}

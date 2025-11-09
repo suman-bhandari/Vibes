@@ -50,6 +50,7 @@ export interface LiveComment {
   timestamp: Date;
   trustability: number;
   reputation: number; // 0-5, normalized reputation for color coding
+  karma?: number; // experience points (for display)
   images?: string[]; // optional array of image URLs
 }
 
