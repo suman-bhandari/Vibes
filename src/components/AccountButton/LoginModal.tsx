@@ -170,7 +170,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogout }) =>
               onClick={() => setShowRedeem(true)}
               className="w-full px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all font-medium shadow-lg"
             >
-              🎁 Redeem Coupons
+              🎁 Redeem EXP
             </button>
 
             <button
@@ -197,7 +197,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogout }) =>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Redeem Coupons</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Redeem EXP</h2>
             <button
               onClick={() => setShowRedeem(false)}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
