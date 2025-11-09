@@ -152,41 +152,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogout }) =>
 
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Trustability Score</span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{user.trustability}/100</span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${user.trustability}%` }}
-                  />
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Trust</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">🤝 {user.reputation.toFixed(1)}/5</span>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Reputation</span>
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{user.reputation.toFixed(1)}/5</span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className="bg-green-600 h-2 rounded-full transition-all"
-                    style={{ width: `${(user.reputation / 5) * 100}%` }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Karma</span>
-                  <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">💎 {user.karma || 0}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">EXP</span>
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400"><span className="font-bold">EXP</span> {user.karma >= 1000 ? `${(user.karma / 1000).toFixed(1)}k` : user.karma}</span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Redeemable for coupons and rewards</p>
               </div>
-            </div>
-
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Total Reviews</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">{user.totalReviews}</p>
             </div>
 
             <button

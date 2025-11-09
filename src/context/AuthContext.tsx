@@ -26,12 +26,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const createDefaultUser = () => {
     const defaultUser: User = {
       id: 'user_default',
-      email: 'user@example.com',
+      email: 'rohan@amazon.com',
       name: 'Rohan',
-      trustability: 98,
+      trustability: 0, // Not displayed
       reputation: 4.9, // 0-5 normalized reputation (visible to all)
-      karma: 12000, // karma points (only visible to user, can be redeemed) - 12k
-      totalReviews: 23,
+      karma: 12487, // EXP points (only visible to user, can be redeemed)
+      totalReviews: 0, // Not displayed
       createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
     };
     localStorage.setItem('venueTracker_user', JSON.stringify(defaultUser));
