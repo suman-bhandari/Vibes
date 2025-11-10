@@ -29,11 +29,39 @@ function AppContent() {
     }
   }, [isDarkMode]);
 
+  // Helper function to calculate vibe from venue (consistent with MapView)
+  const getVenueVibe = (venue: Venue): number | undefined => {
+    if (!venue.liveComments || venue.liveComments.length === 0) {
+      // If no comments, use venue's vibe if available (convert from old 1-10 scale if needed)
+      if (venue.vibe !== undefined) {
+        return venue.vibe > 5 ? (venue.vibe - 1) / 2 : venue.vibe;
+      }
+      return undefined;
+    }
+    
+    // Calculate from live comments
+    const isEntertainmentVenue = venue.category === 'bar' || venue.category === 'club';
+    if (!isEntertainmentVenue) return undefined;
+    
+    const commentsWithVibe = venue.liveComments.filter(c => c.vibe !== undefined);
+    if (commentsWithVibe.length === 0) return undefined;
+    
+    const sum = commentsWithVibe.reduce((acc, c) => {
+      const vibe = c.vibe || 0;
+      const normalizedVibe = vibe > 5 ? (vibe - 1) / 2 : vibe;
+      return acc + normalizedVibe;
+    }, 0);
+    return sum / commentsWithVibe.length;
+  };
+
   // Filter venues based on category, vibe, and activity level
   const filteredVenues = useMemo(() => {
     let venues = filterVenuesByCategory(mockVenues, selectedCategory);
     
-    // Filter out venues below 3.5 vibe and venues with red waiting times (very-busy)
+    // Determine minimum vibe threshold (use minVibe if set, otherwise default to 3.5)
+    const minVibeThreshold = minVibe > 0 ? minVibe : 3.5;
+    
+    // Filter out venues below vibe threshold and venues with red waiting times (very-busy)
     venues = venues.filter((v) => {
       // Always include Celeste (special venue)
       if (v.id === '32' || v.name === 'Celeste') {
@@ -45,30 +73,12 @@ function AppContent() {
         return false;
       }
       
-      // For entertainment venues (bar, club), filter by vibe (must be >= 3.5)
+      // For entertainment venues (bar, club), filter by vibe
       if (v.category === 'bar' || v.category === 'club') {
-        let calculatedVibe: number | undefined = undefined;
+        const calculatedVibe = getVenueVibe(v);
         
-        // Calculate vibe from live comments if available
-        if (v.liveComments && v.liveComments.length > 0) {
-          const commentsWithVibe = v.liveComments.filter(c => c.vibe !== undefined);
-          if (commentsWithVibe.length > 0) {
-            const sum = commentsWithVibe.reduce((acc, c) => {
-              const vibe = c.vibe || 0;
-              const normalizedVibe = vibe > 5 ? (vibe - 1) / 2 : vibe;
-              return acc + normalizedVibe;
-            }, 0);
-            calculatedVibe = sum / commentsWithVibe.length;
-          }
-        }
-        
-        // Use vibe property if available (prefer this over calculated)
-        if (v.vibe !== undefined) {
-          calculatedVibe = v.vibe > 5 ? (v.vibe - 1) / 2 : v.vibe;
-        }
-        
-        // If we have a vibe value and it's below 3.5, filter it out
-        if (calculatedVibe !== undefined && calculatedVibe < 3.5) {
+        // If we have a vibe value and it's below threshold, filter it out
+        if (calculatedVibe !== undefined && calculatedVibe < minVibeThreshold) {
           return false;
         }
         
@@ -80,23 +90,6 @@ function AppContent() {
       
       return true;
     });
-    
-    // Additional filter by minVibe if set
-    if (minVibe > 0) {
-      venues = venues.filter((v) => {
-        if (v.category === 'bar' || v.category === 'club') {
-          // For entertainment venues, filter by aggregated vibe
-          if (v.vibe !== undefined) {
-            const normalizedVibe = v.vibe > 5 ? (v.vibe - 1) / 2 : v.vibe;
-            return normalizedVibe >= minVibe;
-          }
-          // If no vibe set, include it (will be calculated from comments)
-          return true;
-        }
-        // For non-entertainment venues, include all
-        return true;
-      });
-    }
     
     return venues;
   }, [selectedCategory, minVibe]);
@@ -152,11 +145,16 @@ function AppContent() {
         <AccountButton />
 
       {/* Search Bar */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-2xl px-4">
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-4xl px-4">
         <SearchBar
           venues={mockVenues}
           onVenueSelect={handleVenueSelect}
           onClear={handleClearSelection}
+          onOpenLiveEvents={() => setIsEventsOpen(true)}
+          onOpenFeelingLucky={() => {
+            const event = new CustomEvent('feelingLuckyOpen');
+            window.dispatchEvent(event);
+          }}
         />
       </div>
 

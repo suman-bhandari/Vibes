@@ -101,36 +101,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             Filters
           </h2>
 
-          {/* Live Events Button */}
-          {onEventSelect && (
-            <div className="mb-6">
-              <button
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('openLiveEvents'));
-                }}
-                className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg shadow-lg hover:from-purple-700 hover:to-pink-700 transition-all text-sm font-semibold flex items-center justify-center gap-2"
-              >
-                <span>🎉</span>
-                <span>Live Events</span>
-              </button>
-            </div>
-          )}
-
-          {/* I'm Feeling Lucky Button */}
-          {onVenueSelect && (
-            <div className="mb-6">
-              <button
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('openFeelingLucky'));
-                }}
-                className="w-full px-4 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg shadow-lg hover:from-yellow-600 hover:to-orange-600 transition-all text-sm font-semibold flex items-center justify-center gap-2"
-              >
-                <span>🍀</span>
-                <span>I'm Feeling Lucky</span>
-              </button>
-            </div>
-          )}
-
           {/* Category Filters */}
           <div className="mb-8">
             <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">

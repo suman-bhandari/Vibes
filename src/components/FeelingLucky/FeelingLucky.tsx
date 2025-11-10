@@ -10,22 +10,21 @@ const FeelingLucky: React.FC<FeelingLuckyProps> = ({ onVenueSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [vibeInput, setVibeInput] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [matchedVenue, setMatchedVenue] = useState<Venue | null>(null);
+  const [topResults, setTopResults] = useState<Array<{ venue: Venue; score: number }>>([]);
 
   // Listen for custom event to open
   React.useEffect(() => {
     const handleOpen = () => setIsOpen(true);
-    window.addEventListener('openFeelingLucky', handleOpen);
-    return () => window.removeEventListener('openFeelingLucky', handleOpen);
+    window.addEventListener('feelingLuckyOpen', handleOpen);
+    return () => window.removeEventListener('feelingLuckyOpen', handleOpen);
   }, []);
 
   const handleMatch = () => {
     if (!vibeInput.trim()) return;
 
-    // Simple vibe matching algorithm
+    // Simple vibe matching algorithm - calculate scores for all venues
     const input = vibeInput.toLowerCase();
-    let bestMatch: Venue | null = null;
-    let bestScore = 0;
+    const scoredVenues: Array<{ venue: Venue; score: number }> = [];
 
     mockVenues.forEach((venue) => {
       let score = 0;
@@ -49,7 +48,9 @@ const FeelingLucky: React.FC<FeelingLuckyProps> = ({ onVenueSelect }) => {
         if (venue.category === 'coffee') score += 4;
       }
       if (input.includes('vibe') || input.includes('atmosphere')) {
-        if (venue.vibe && venue.vibe >= 7) score += 2;
+        // Check vibe on 0-5 scale (normalize if needed)
+        const normalizedVibe = venue.vibe && venue.vibe > 5 ? (venue.vibe - 1) / 2 : venue.vibe;
+        if (normalizedVibe && normalizedVibe >= 3.5) score += 2;
       }
       if (input.includes('crowd') || input.includes('people')) {
         // Check if crowd range indicates a busy venue (average crowd >= 30 people)
@@ -100,21 +101,30 @@ const FeelingLucky: React.FC<FeelingLuckyProps> = ({ onVenueSelect }) => {
       // Boost score for venues with good reviews
       if (venue.aiSummary && venue.aiSummary.includes('recommended')) score += 1;
 
-      if (score > bestScore) {
-        bestScore = score;
-        bestMatch = venue;
+      // Only include venues with a score > 0
+      if (score > 0) {
+        scoredVenues.push({ venue, score });
       }
     });
 
-    // If no good match, pick a random popular venue
-    if (!bestMatch || bestScore < 2) {
-      const popularVenues = mockVenues.filter(
-        (v) => v.capacity > 50 || v.isSpecialEvent || (v.vibe && v.vibe >= 7)
-      );
-      bestMatch = popularVenues[Math.floor(Math.random() * popularVenues.length)] || mockVenues[0];
-    }
+    // Sort by score (highest first) and take top 5
+    const sortedResults = scoredVenues
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
 
-    setMatchedVenue(bestMatch);
+    // If no good matches, show popular venues as fallback
+    if (sortedResults.length === 0) {
+      const popularVenues = mockVenues
+        .filter((v) => {
+          const normalizedVibe = v.vibe && v.vibe > 5 ? (v.vibe - 1) / 2 : v.vibe;
+          return v.capacity > 50 || v.isSpecialEvent || (normalizedVibe && normalizedVibe >= 3.5);
+        })
+        .slice(0, 5)
+        .map((v) => ({ venue: v, score: 1 }));
+      setTopResults(popularVenues);
+    } else {
+      setTopResults(sortedResults);
+    }
   };
 
   const handleMicClick = () => {
@@ -129,21 +139,19 @@ const FeelingLucky: React.FC<FeelingLuckyProps> = ({ onVenueSelect }) => {
     }
   };
 
-  const handleSelectMatch = () => {
-    if (matchedVenue) {
-      onVenueSelect(matchedVenue);
-      setIsOpen(false);
-      setVibeInput('');
-      setMatchedVenue(null);
-    }
+  const handleSelectVenue = (venue: Venue) => {
+    onVenueSelect(venue);
+    setIsOpen(false);
+    setVibeInput('');
+    setTopResults([]);
   };
 
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={() => setIsOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm" onClick={() => setIsOpen(false)}>
           <div
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
+            className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-lg shadow-xl p-6 w-full max-w-md mx-4 border border-gray-200/50 dark:border-gray-700/50"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -193,24 +201,61 @@ const FeelingLucky: React.FC<FeelingLuckyProps> = ({ onVenueSelect }) => {
               Find My Match
             </button>
 
-            {matchedVenue && (
-              <div className="border border-purple-200 dark:border-purple-800 rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20">
-                <div className="flex items-start gap-3 mb-3">
-                  <span className="text-2xl">{matchedVenue.category === 'bar' || matchedVenue.category === 'club' ? '🍺' : matchedVenue.category === 'restaurant' ? '🍽️' : matchedVenue.category === 'salon' ? '✂️' : '☕'}</span>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{matchedVenue.name}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{matchedVenue.address}</p>
-                  </div>
-                </div>
-                {matchedVenue.aiSummary && (
-                  <p className="text-sm text-gray-700 dark:text-gray-300 italic mb-3">"{matchedVenue.aiSummary}"</p>
-                )}
-                <button
-                  onClick={handleSelectMatch}
-                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-                >
-                  Take Me There!
-                </button>
+            {topResults.length > 0 && (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Top Recommendations ({topResults.length})
+                </h3>
+                {topResults.map((result, index) => {
+                  const venue = result.venue;
+                  const getCategoryIcon = () => {
+                    if (venue.category === 'bar' || venue.category === 'club') return '🍺';
+                    if (venue.category === 'restaurant') return '🍽️';
+                    if (venue.category === 'salon') return '✂️';
+                    return '☕';
+                  };
+                  
+                  return (
+                    <div
+                      key={venue.id}
+                      className="border border-purple-200 dark:border-purple-800 rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors cursor-pointer"
+                      onClick={() => handleSelectVenue(venue)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <span className="text-2xl">{getCategoryIcon()}</span>
+                          {index === 0 && (
+                            <div className="text-xs text-purple-600 dark:text-purple-400 font-semibold mt-1">
+                              Best Match
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="font-semibold text-gray-900 dark:text-white truncate">{venue.name}</h3>
+                            {(() => {
+                              const normalizedVibe = venue.vibe && venue.vibe > 5 ? (venue.vibe - 1) / 2 : venue.vibe;
+                              return normalizedVibe !== undefined && normalizedVibe >= 4.0;
+                            })() && (
+                              <span className="text-xs text-orange-500 ml-2">🔥</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{venue.address}</p>
+                          {venue.aiSummary && (
+                            <p className="text-xs text-gray-700 dark:text-gray-300 italic mb-2 line-clamp-2">
+                              "{venue.aiSummary}"
+                            </p>
+                          )}
+                          {venue.crowdRange && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Crowd: {venue.crowdRange[0]} - {venue.crowdRange[1]} people
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
