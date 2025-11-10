@@ -548,6 +548,7 @@ export const mockVenues: Venue[] = [
     phone: '(415) 555-0123',
     website: 'https://floydsbarbershop.com',
     description: 'Classic barbershop with modern style. Expert cuts, hot towel shaves, and a welcoming atmosphere.',
+    aiSummary: 'Floyd\'s Barbershop is slightly busy right now.',
     liveComments: [
       {
         id: 'floyd_comment_1',

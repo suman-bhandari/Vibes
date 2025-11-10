@@ -462,20 +462,20 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                 {/* Wait Time Range - for service venues only (no crowd) */}
                 {isServiceVenue && (
                   <div className="mt-1">
-                    <p className="text-[9px] text-gray-600 dark:text-gray-400 mb-0.5">Wait Time</p>
-                    <div className="relative h-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full overflow-hidden">
-                      {/* Blue highlighted interval - use 60 minutes as max scale */}
-                      <div
-                        className="absolute h-full bg-blue-600 rounded-full"
-                        style={{
-                          left: `${Math.min(95, (displayWaitTimeRange[0] / 60) * 100)}%`,
-                          width: `${Math.min(100 - (displayWaitTimeRange[0] / 60) * 100, ((displayWaitTimeRange[1] - displayWaitTimeRange[0]) / 60) * 100)}%`
-                        }}
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[8px] font-medium text-gray-700 dark:text-gray-300 z-10">
-                          {displayWaitTimeRange[0]} - {displayWaitTimeRange[1]} min
-                        </span>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[12px] text-gray-600 dark:text-gray-400 whitespace-nowrap">Wait Time:</p>
+                      <p className="text-[10px] font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                        {displayWaitTimeRange[0]} - {displayWaitTimeRange[1]} min
+                      </p>
+                      <div className="flex-1 relative h-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full overflow-hidden">
+                        {/* Blue highlighted interval - use 60 minutes as max scale */}
+                        <div
+                          className="absolute h-full bg-blue-600 rounded-full"
+                          style={{
+                            left: `${Math.min(95, (displayWaitTimeRange[0] / 60) * 100)}%`,
+                            width: `${Math.min(100 - (displayWaitTimeRange[0] / 60) * 100, ((displayWaitTimeRange[1] - displayWaitTimeRange[0]) / 60) * 100)}%`
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
