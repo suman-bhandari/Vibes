@@ -69,6 +69,7 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [expandedCommentImage, setExpandedCommentImage] = useState<string | null>(null);
   const [venueUserImages, setVenueUserImages] = useState<VenueImage[]>(venue?.userImages || []);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const reviews = getReviews(venue.id);
@@ -86,6 +87,9 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
     
     // Mark existing comments as not new
     setNewCommentIds(new Set());
+    
+    // Clear any error messages when venue changes
+    setErrorMessage(null);
   }, [venue]);
 
   // Helper function to add a new comment
@@ -282,6 +286,17 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
 
   const handleAddComment = () => {
     if ((!newComment.trim() && selectedImages.length === 0) || !user) return;
+    
+    // Check if user is trying to comment on Smuggler's Cove
+    if (venue.id === '4') {
+      setErrorMessage('Comment cannot be posted because you are not in the venue.');
+      // Auto-dismiss error after 5 seconds
+      setTimeout(() => setErrorMessage(null), 5000);
+      return;
+    }
+    
+    // Clear any previous error
+    setErrorMessage(null);
     
     // Validate required fields based on venue type
     if (isEntertainmentVenue && vibeRating === 0) {
@@ -658,6 +673,15 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                   </div>
                 )}
                 
+                {/* Error Message */}
+                {errorMessage && (
+                  <div className="px-2 mb-1">
+                    <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                      <p className="text-[10px] text-red-600 dark:text-red-400">{errorMessage}</p>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex items-center gap-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 px-2 py-1">
                   <button
                     onClick={handleAddComment}
@@ -672,7 +696,11 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                   <input
                     type="text"
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    onChange={(e) => {
+                      setNewComment(e.target.value);
+                      // Clear error when user starts typing
+                      if (errorMessage) setErrorMessage(null);
+                    }}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
