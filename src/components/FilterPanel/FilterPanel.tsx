@@ -159,25 +159,25 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
           </div>
 
-          {/* Vibe - Fire Emoji Selection */}
+          {/* Vibe - Sparkle Emoji Selection */}
           <div>
             <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
               Vibe
             </h3>
             <div className="flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => {
-                const rating = i + 1; // 1, 2, 3, 4, 5 (5 fires representing 1-5, 0 is unselected)
+                const rating = i + 1; // 1, 2, 3, 4, 5 (5 sparkles representing 1-5, 0 is unselected)
                 const isSelected = minVibe >= rating;
                 return (
                   <button
                     key={i}
                     type="button"
                     onClick={() => {
-                      // Clicking fire N sets minVibe to N (1-5)
-                      // If clicking the same fire again, set to 0
+                      // Clicking sparkle N sets minVibe to N (1-5)
+                      // If clicking the same sparkle again, set to 0
                       onMinVibeChange(minVibe === rating ? 0 : rating);
                     }}
-                    className={`text-lg transition-all ${
+                    className={`text-lg transition-all sparkle-orange ${
                       isSelected ? 'opacity-100' : 'opacity-20'
                     } hover:opacity-60`}
                     title={`${rating}/5`}

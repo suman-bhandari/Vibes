@@ -29,17 +29,66 @@ function AppContent() {
     }
   }, [isDarkMode]);
 
-  // Filter venues based on category and vibe
+  // Filter venues based on category, vibe, and activity level
   const filteredVenues = useMemo(() => {
     let venues = filterVenuesByCategory(mockVenues, selectedCategory);
-    // Filter by vibe for entertainment venues (bar, club)
+    
+    // Filter out venues below 3.5 vibe and venues with red waiting times (very-busy)
+    venues = venues.filter((v) => {
+      // Always include Celeste (special venue)
+      if (v.id === '32' || v.name === 'Celeste') {
+        return true;
+      }
+      
+      // Filter out venues with very-busy activity level (red waiting times)
+      if (v.activityLevel === 'very-busy') {
+        return false;
+      }
+      
+      // For entertainment venues (bar, club), filter by vibe (must be >= 3.5)
+      if (v.category === 'bar' || v.category === 'club') {
+        let calculatedVibe: number | undefined = undefined;
+        
+        // Calculate vibe from live comments if available
+        if (v.liveComments && v.liveComments.length > 0) {
+          const commentsWithVibe = v.liveComments.filter(c => c.vibe !== undefined);
+          if (commentsWithVibe.length > 0) {
+            const sum = commentsWithVibe.reduce((acc, c) => {
+              const vibe = c.vibe || 0;
+              const normalizedVibe = vibe > 5 ? (vibe - 1) / 2 : vibe;
+              return acc + normalizedVibe;
+            }, 0);
+            calculatedVibe = sum / commentsWithVibe.length;
+          }
+        }
+        
+        // Use vibe property if available (prefer this over calculated)
+        if (v.vibe !== undefined) {
+          calculatedVibe = v.vibe > 5 ? (v.vibe - 1) / 2 : v.vibe;
+        }
+        
+        // If we have a vibe value and it's below 3.5, filter it out
+        if (calculatedVibe !== undefined && calculatedVibe < 3.5) {
+          return false;
+        }
+        
+        // If no vibe data available for entertainment venue, exclude it (to be safe)
+        if (calculatedVibe === undefined) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+    
+    // Additional filter by minVibe if set
     if (minVibe > 0) {
       venues = venues.filter((v) => {
         if (v.category === 'bar' || v.category === 'club') {
           // For entertainment venues, filter by aggregated vibe
-          // For now, use the vibe property if available, otherwise skip filtering
           if (v.vibe !== undefined) {
-            return v.vibe >= minVibe;
+            const normalizedVibe = v.vibe > 5 ? (v.vibe - 1) / 2 : v.vibe;
+            return normalizedVibe >= minVibe;
           }
           // If no vibe set, include it (will be calculated from comments)
           return true;
@@ -48,6 +97,7 @@ function AppContent() {
         return true;
       });
     }
+    
     return venues;
   }, [selectedCategory, minVibe]);
 

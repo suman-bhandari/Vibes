@@ -141,3 +141,33 @@
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+/* Orange sparkle emoji styling */
+.sparkle-orange {
+  filter: hue-rotate(15deg) saturate(2) brightness(1.2);
+  text-shadow: 0 0 6px rgba(255, 165, 0, 0.8), 0 0 12px rgba(255, 165, 0, 0.4);
+  display: inline-block;
+}
+
+/* Translucent Leaflet popup styling */
+.leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: rgba(17, 24, 39, 0.85) !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.dark .leaflet-popup-tip {
+  background: rgba(17, 24, 39, 0.85) !important;
+}

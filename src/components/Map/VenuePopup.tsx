@@ -6,6 +6,7 @@ import { getReputationColor, getReputationBgColor, formatTimeAgo, generateExp } 
 import { useAuth } from '../../context/AuthContext';
 import ReviewModal from '../Reviews/ReviewModal';
 import ReviewsList from '../Reviews/ReviewsList';
+import StackedImageGallery from './StackedImageGallery';
 
 interface VenuePopupProps {
   venue: Venue;
@@ -241,20 +242,20 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
     return Math.round(aggregatedVibe * 2) / 2;
   }, [aggregatedVibe]);
 
-  // Helper function to render fire symbols for vibe (0-5 scale)
-  const renderVibeFires = (vibe: number) => {
+  // Helper function to render sparkle symbols for vibe (0-5 scale)
+  const renderVibeSparkles = (vibe: number) => {
     const roundedVibe = Math.round(vibe * 2) / 2; // Round to nearest 0.5
-    const fullFires = Math.floor(roundedVibe);
-    const hasHalfFire = roundedVibe % 1 === 0.5;
+    const fullSparkles = Math.floor(roundedVibe);
+    const hasHalfSparkle = roundedVibe % 1 === 0.5;
     
     return (
       <span className="flex items-center gap-0.5">
-        {Array.from({ length: fullFires }).map((_, i) => (
-          <span key={i} className="text-xs">🔥</span>
+        {Array.from({ length: fullSparkles }).map((_, i) => (
+          <span key={i} className="text-xs sparkle-orange">🔥</span>
         ))}
-        {hasHalfFire && <span className="text-xs opacity-50">🔥</span>}
-        {Array.from({ length: 5 - fullFires - (hasHalfFire ? 1 : 0) }).map((_, i) => (
-          <span key={`empty-${i}`} className="text-xs opacity-20">🔥</span>
+        {hasHalfSparkle && <span className="text-xs opacity-50 sparkle-orange">🔥</span>}
+        {Array.from({ length: 5 - fullSparkles - (hasHalfSparkle ? 1 : 0) }).map((_, i) => (
+          <span key={`empty-${i}`} className="text-xs opacity-20 sparkle-orange">🔥</span>
         ))}
       </span>
     );
@@ -381,11 +382,11 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                 {/* Metrics in horizontal layout - for entertainment venues */}
                 {isEntertainmentVenue && (
                   <div className="mt-1 flex items-center gap-2 flex-wrap">
-                    {/* Vibe Rating (fire symbols) */}
+                    {/* Vibe Rating (sparkle symbols) */}
                     {aggregatedVibe !== undefined && roundedVibe !== undefined && (
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] text-gray-600 dark:text-gray-400">Vibe:</span>
-                        {renderVibeFires(roundedVibe)}
+                        {renderVibeSparkles(roundedVibe)}
                         <span className="text-[9px] font-medium text-gray-700 dark:text-gray-300">
                           {aggregatedVibe.toFixed(1)}/5
                         </span>
@@ -458,33 +459,11 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
               )}
 
               <p className="text-[9px] text-gray-500 dark:text-gray-400">{venue.address}</p>
-
-              {/* User Uploaded Images */}
-              {venue.userImages && venue.userImages.length > 0 && (
-                <div>
-                  <p className="text-[9px] font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Photos</p>
-                  <div className="grid grid-cols-3 gap-0.5">
-                    {venue.userImages.slice(0, 6).map((image) => (
-                      <button
-                        key={image.id}
-                        onClick={() => setExpandedImage(image)}
-                        className="relative aspect-square rounded overflow-hidden hover:opacity-80 transition-opacity"
-                      >
-                        <img
-                          src={image.url}
-                          alt={image.caption || 'Venue'}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
           {/* Bottom Section: Live Comments - Scrollable */}
-          <div className="flex-[0.8] overflow-y-auto min-h-0 border-t border-gray-200 dark:border-gray-700 pt-1">
+          <div className="h-48 overflow-y-auto border-t border-gray-200 dark:border-gray-700 pt-1 flex-shrink-0">
             <p className="text-[10px] font-semibold text-gray-700 dark:text-gray-300 mb-1">Live Comments</p>
             
             {/* Comments List */}
@@ -554,31 +533,40 @@ const VenuePopup: React.FC<VenuePopupProps> = ({ venue, onViewDetails }) => {
                 </p>
               )}
             </div>
-
           </div>
         </div>
+
+        {/* Recent Photos - Below Live Comments, Above Input */}
+        {venue.id === '25' && venue.userImages && venue.userImages.length > 0 && (
+          <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-2 pb-1">
+            <StackedImageGallery
+              images={venue.userImages}
+              onImageClick={(image) => setExpandedImage(image)}
+            />
+          </div>
+        )}
 
         {/* WhatsApp-style Comment Input - Fixed at bottom */}
             {user && (
               <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-1 mt-1 space-y-1">
-                {/* Vibe input for entertainment venues - clickable fire symbols */}
+                {/* Vibe input for entertainment venues - clickable sparkle symbols */}
                 {isEntertainmentVenue && (
                   <div className="flex items-center gap-2 px-2">
                     <label className="text-[9px] text-gray-600 dark:text-gray-400 whitespace-nowrap">Vibe:</label>
                     <div className="flex items-center gap-0.5">
                       {Array.from({ length: 5 }).map((_, i) => {
-                        const rating = i + 1; // 1, 2, 3, 4, 5 (5 fires representing 1-5, 0 is unselected)
+                        const rating = i + 1; // 1, 2, 3, 4, 5 (5 sparkles representing 1-5, 0 is unselected)
                         const isSelected = vibeRating >= rating;
                         return (
                           <button
                             key={i}
                             type="button"
                             onClick={() => {
-                              // Clicking fire N sets rating to N (1-5)
-                              // If clicking the same fire again, set to 0
+                              // Clicking sparkle N sets rating to N (1-5)
+                              // If clicking the same sparkle again, set to 0
                               setVibeRating(vibeRating === rating ? 0 : rating);
                             }}
-                            className={`text-sm transition-all ${
+                            className={`text-sm transition-all sparkle-orange ${
                               isSelected ? 'opacity-100' : 'opacity-20'
                             } hover:opacity-60`}
                             title={`${rating}/5`}

@@ -393,6 +393,50 @@ export const mockVenues: Venue[] = [
     phone: '(415) 666-0822',
     website: 'https://thealembic.com',
     description: 'A craft cocktail bar in the heart of Haight-Ashbury, known for innovative drinks and a cozy atmosphere. Perfect for date nights or catching up with friends.',
+    userImages: [
+      {
+        id: 'img_alembic_1',
+        url: 'https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=400&h=400&fit=crop',
+        uploadedBy: 'user_abc123',
+        uploadedAt: new Date(Date.now() - 10 * 60 * 1000), // 10 min ago
+        caption: 'Amazing cocktails tonight!',
+      },
+      {
+        id: 'img_alembic_2',
+        url: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400&h=400&fit=crop',
+        uploadedBy: 'user_def456',
+        uploadedAt: new Date(Date.now() - 25 * 60 * 1000), // 25 min ago
+        caption: 'The vibe is electric!',
+      },
+      {
+        id: 'img_alembic_3',
+        url: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=400&fit=crop',
+        uploadedBy: 'user_ghi789',
+        uploadedAt: new Date(Date.now() - 45 * 60 * 1000), // 45 min ago
+        caption: 'Best Old Fashioned ever!',
+      },
+      {
+        id: 'img_alembic_4',
+        url: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=400&h=400&fit=crop',
+        uploadedBy: 'user_jkl012',
+        uploadedAt: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
+        caption: 'Crowd is picking up!',
+      },
+      {
+        id: 'img_alembic_5',
+        url: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400&h=400&fit=crop',
+        uploadedBy: 'user_mno345',
+        uploadedAt: new Date(Date.now() - 90 * 60 * 1000), // 1.5 hours ago
+        caption: 'Great atmosphere!',
+      },
+      {
+        id: 'img_alembic_6',
+        url: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=400&fit=crop',
+        uploadedBy: 'user_pqr678',
+        uploadedAt: new Date(Date.now() - 120 * 60 * 1000), // 2 hours ago
+        caption: 'Love this place!',
+      },
+    ],
     liveComments: [
       {
         id: 'comment_1',
@@ -568,6 +612,58 @@ export const mockVenues: Venue[] = [
         trustability: 88,
         reputation: 4.4,
         waitTimeRange: [25, 30],
+        karma: generateExp(),
+      },
+    ],
+  },
+  {
+    id: '32',
+    name: 'Celeste',
+    category: 'bar',
+    address: '400 Broadway, San Francisco, CA 94133',
+    latitude: 37.7981,
+    longitude: -122.4077,
+    capacity: 60,
+    waitTime: 15,
+    waitTimeInterval: getWaitTimeInterval(15),
+    activityLevel: getActivityLevel(60, 15),
+    vibe: 5.0,
+    crowdRange: [30, 40],
+    isSpecialEvent: true,
+    specialEventDescription: 'Exclusive event happening now! 🎉',
+    openingHours: {
+      monday: '6:00 PM - 2:00 AM',
+      tuesday: '6:00 PM - 2:00 AM',
+      wednesday: '6:00 PM - 2:00 AM',
+      thursday: '6:00 PM - 2:00 AM',
+      friday: '6:00 PM - 2:00 AM',
+      saturday: '6:00 PM - 2:00 AM',
+      sunday: '6:00 PM - 12:00 AM',
+    },
+    phone: '(415) 555-0199',
+    website: 'https://celeste-sf.com',
+    description: 'An exclusive rooftop bar with stunning city views. Known for craft cocktails and special events.',
+    liveComments: [
+      {
+        id: 'celeste_comment_1',
+        userId: 'user_celeste1',
+        userName: 'Alex',
+        comment: 'Incredible atmosphere! The special event is amazing!',
+        timestamp: new Date(Date.now() - 2 * 60 * 1000), // 2 min ago
+        trustability: 92,
+        reputation: 4.6,
+        vibe: 5.0,
+        karma: generateExp(),
+      },
+      {
+        id: 'celeste_comment_2',
+        userId: 'user_celeste2',
+        userName: 'Jordan',
+        comment: 'Best night ever! This place is magical!',
+        timestamp: new Date(Date.now() - 8 * 60 * 1000), // 8 min ago
+        trustability: 88,
+        reputation: 4.4,
+        vibe: 5.0,
         karma: generateExp(),
       },
     ],

@@ -52,13 +52,49 @@ const MapView: React.FC<MapViewProps> = ({ venues, selectedVenue, onVenueSelect 
     }
   }, [selectedVenue]);
 
-  // Create custom marker icons based on activity level
-  const createCustomIcon = (venue: Venue) => {
-    const color = getActivityColor(venue.activityLevel);
-    const hasHighVibe = venue.vibe !== undefined && venue.vibe >= 8;
+  // Calculate aggregated vibe from live comments (0-5 scale)
+  const getVenueVibe = (venue: Venue): number | undefined => {
+    if (!venue.liveComments || venue.liveComments.length === 0) {
+      // If no comments, use venue's vibe if available (convert from old 1-10 scale if needed)
+      if (venue.vibe !== undefined) {
+        return venue.vibe > 5 ? (venue.vibe - 1) / 2 : venue.vibe;
+      }
+      return undefined;
+    }
     
-    if (hasHighVibe) {
-      // Star marker for venues with high vibe (8 or more)
+    // Calculate from live comments
+    const isEntertainmentVenue = venue.category === 'bar' || venue.category === 'club';
+    if (!isEntertainmentVenue) return undefined;
+    
+    const commentsWithVibe = venue.liveComments.filter(c => c.vibe !== undefined);
+    if (commentsWithVibe.length === 0) return undefined;
+    
+    const sum = commentsWithVibe.reduce((acc, c) => {
+      const vibe = c.vibe || 0;
+      const normalizedVibe = vibe > 5 ? (vibe - 1) / 2 : vibe;
+      return acc + normalizedVibe;
+    }, 0);
+    return sum / commentsWithVibe.length;
+  };
+
+  // Get background color based on vibe (0-5 scale)
+  const getVibeColor = (vibe: number): string => {
+    if (vibe >= 4.0) {
+      // Strong vibe - Orange
+      return '#FF8C00';
+    } else if (vibe >= 2.5) {
+      // Medium vibe - Grayish-orange
+      return '#D4A574';
+    } else {
+      // Low vibe - Light grayish-orange
+      return '#C4A484';
+    }
+  };
+
+  // Create custom marker icons based on vibe
+  const createCustomIcon = (venue: Venue) => {
+    // Special marker for Celeste - fire with shiny background
+    if (venue.id === '32' || venue.name === 'Celeste') {
       return L.divIcon({
         className: 'custom-marker',
         html: `
@@ -68,16 +104,44 @@ const MapView: React.FC<MapViewProps> = ({ venues, selectedVenue, onVenueSelect 
             filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
             cursor: pointer;
             text-align: center;
-            color: #FFD700;
-            text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
-          ">⭐</div>
+            color: #FFA500;
+            text-shadow: 0 0 8px rgba(255, 165, 0, 0.8);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.3));
+            border-radius: 50%;
+            padding: 8px;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.6), inset 0 0 20px rgba(255, 215, 0, 0.4);
+          ">🔥</div>
+        `,
+        iconSize: [48, 48],
+        iconAnchor: [24, 24],
+      });
+    }
+    
+    const vibe = getVenueVibe(venue);
+    const isEntertainmentVenue = venue.category === 'bar' || venue.category === 'club';
+    
+    // For high vibe venues (4.0+), show fire
+    if (vibe !== undefined && vibe >= 4.0 && isEntertainmentVenue) {
+      return L.divIcon({
+        className: 'custom-marker',
+        html: `
+          <div style="
+            font-size: 32px;
+            line-height: 1;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+            cursor: pointer;
+            text-align: center;
+            color: #FFA500;
+            text-shadow: 0 0 8px rgba(255, 165, 0, 0.8);
+          ">🔥</div>
         `,
         iconSize: [32, 32],
         iconAnchor: [16, 16],
       });
     }
     
-    // Regular circle marker for normal venues
+    // For non-entertainment venues, use activity level color (circle)
+    const color = getActivityColor(venue.activityLevel);
     return L.divIcon({
       className: 'custom-marker',
       html: `
